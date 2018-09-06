@@ -115,14 +115,12 @@ void loop()
   if (ch[2] < 1100)
   {
     breakout = 0;
-    Serial.println("Starting...");
     delay(1000);
     MainLoop();
   }
   else
   {
     FullStop();
-    Serial.println("Full Stop");
   } 
 }
 //-------------------------------------------------------------------------------------------------------------
@@ -145,7 +143,7 @@ void loop()
     xA = Axis_xyz();
     yA = Axis_xyz()+1;
     zA = Axis_xyz()+2;
-    Serial.println("1");
+    
     ThrottleSetPoint =  ThrottleControl();
     if(*ThrottleSetPoint > 1050)
     {
@@ -161,10 +159,9 @@ void loop()
         YawSetPoint =0;
       
         shutdowntime += (millis()- timer)*10;
-        Serial.println(shutdowntime);
+
         if( shutdowntime > 2000)
         {
-          Serial.println("Stop Flying");
           breakout = 1;
         }
     }

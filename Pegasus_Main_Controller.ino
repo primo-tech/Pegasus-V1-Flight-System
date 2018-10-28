@@ -110,6 +110,21 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------
 void loop()
 { 
+  timer = millis();
+
+  xA = Axis_xyz();
+  yA = Axis_xyz()+1;
+  zA = Axis_xyz()+2;
+
+  Serial.print(*xA+3);
+  Serial.print("\t");
+  Serial.print(*yA+1);
+  Serial.print("\t");
+  Serial.print(*zA);
+  Serial.print("\t");
+  Serial.println(Altitude());
+  
+  /*
   MainLoop();
   
   read_rc();
@@ -123,7 +138,11 @@ void loop()
   else
   {
     FullStop();
-  } 
+  }
+  */
+  
+  timeBetFrames = millis() - timer;
+  delay((timeStep*2000) - timeBetFrames); //Run at 50Hz
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -151,7 +170,7 @@ void MainLoop()
     {
         PitchSetPoint = map(ch[3],1008,2008,30,-30);
         RollSetPoint = map(ch[4],1008,2008,30,-30);
-        YawSetPoint = map(ch[2],1076,1936,-30,30)-4;
+        YawSetPoint = map(ch[2],1076,1936,-30,30);
         shutdowntime = 0;
     }
     else
@@ -168,8 +187,8 @@ void MainLoop()
         }
     }
 
-    a = error(*xA,PitchSetPoint);
-    b = error(*yA,RollSetPoint);
+    a = error(*xA+4,PitchSetPoint);
+    b = error(*yA+1,RollSetPoint);
     c = error(*zA,YawSetPoint);
    
     aT += a;
@@ -371,12 +390,12 @@ void AltitudeControl(int al,double x)
 double Altitude()
 {
    float temp(NAN), hum(NAN), pres(NAN);
-   double T = temp + 273;
 
    BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
    BME280::PresUnit presUnit(BME280::PresUnit_Pa);
 
    bme.read(pres, temp, hum, tempUnit, presUnit);
+   double T = temp + 273;
    
    num = log(pres/Pb) * T * R;
    dnum = g * M * -1;

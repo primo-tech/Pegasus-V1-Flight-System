@@ -44,17 +44,19 @@ int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
 /*
  * MOTOR CONNECTIONS
  */
-int M1 = 3;
-int M2 = 5;
-int M3 = 6;
-int M4 = 9;
-int M5 = 10;
-int M6 = 11;
+int M1 = 3;     // Top Left
+int M2 = 5;     // Bottom Left
+int M3 = 6;     // Top Right
+int M4 = 9;     // Bottom Right
+int M5 = 10;    // Top Rear
+int M6 = 11;    // Bottom Rear
 /*
  * PID VARIABLES
  */
 int prevError  = 0;
-int a  = 0,aT  = 0,b  = 0,bT  = 0,c  = 0,cT  = 0;
+int a  = 0,aT  = 0;
+int b  = 0,bT  = 0;
+int c  = 0,cT  = 0;
 int Setpoint1, Input1;
 int PitchSetPoint = 0;
 int RollSetPoint = 0;
@@ -132,8 +134,8 @@ void loop()
  *   MAIN FLIGHT FUNCTIONALITY                        PID GAINS             
  */
                                             double prop = 6,inte = 1,deriv = 6;
- void MainLoop()
- {
+void MainLoop()
+{
   while(breakout != 1)
   {
     timer = millis();
@@ -179,11 +181,11 @@ void loop()
     MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
    
     FlightControl(*ThrottleSetPoint,MP,MR,MY);
-   
+    
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames); 
+    delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
   }
- }
+}
 /*
  *  CALCULATING THE ERROR                     
  */
@@ -264,8 +266,6 @@ void init_motors()
   RunMotors(&Motor5,1000);
   RunMotors(&Motor6,1000);
   delay(5000);
-  mpu.calibrateGyro();
-  delay(200);
 }
 
 /*
@@ -287,97 +287,41 @@ void FullStop()
   RunMotors(&Motor2,1000);
   RunMotors(&Motor3,1000);
   RunMotors(&Motor4,1000);
+  RunMotors(&Motor5,1000);
+  RunMotors(&Motor6,1000);
+}
+void MotorMix(int x)
+{
+  if (x > 2000)
+  {
+    x = 2000;
+    RunMotors(&Motor3,x);
+  }
+  else if(x < 1050)
+  {
+    x = 1050;
+    RunMotors(&Motor3,x);
+  }
+  else
+  {
+    RunMotors(&Motor3,x);
+  }
 }
 void FlightControl(int v,int x,int y,int z)
 {
-  int Run1 = v+x+y+z;
-  int Run2 = v+x-y-z;
-  int Run3 = v-x-y+z;
-  int Run4 = v-x+y-z;
+  int Run1 = v+x+y+z;     // Top Left
+  int Run2 = v+x+y-z;     // Bottom Left
+  int Run3 = v+x-y-z;     // Top Right
+  int Run4 = v+x-y+z;     // Bottom Right
+  int Run5 = v-x-y+z;     // Top Rear
+  int Run6 = v-x+y-z;     // Bottom Rear
   
-  if (Run1 > 2000)
-  {
-    Run1 = 2000;
-    RunMotors(&Motor1,Run1);
-  }
-  else if(Run1 < 1050)
-  {
-    Run1 = 1050;
-    RunMotors(&Motor1,Run1);
-  }
-  else
-  {
-    RunMotors(&Motor1,Run1);
-  }
-  
-  if (Run2 > 2000)
-  {
-    Run2 = 2000;
-    RunMotors(&Motor2,Run2);
-  }
-  else if(Run2 < 1050)
-  {
-    Run2 = 1050;
-    RunMotors(&Motor2,Run2);
-  }
-  else
-  {
-    RunMotors(&Motor2,Run2);
-  }
-  
-  if (Run3 > 2000)
-  {
-    Run3 = 2000;
-    RunMotors(&Motor3,Run3);
-  }
-  else if(Run3 < 1050)
-  {
-    Run3 = 1050;
-    RunMotors(&Motor3,Run3);
-  }
-  else
-  {
-    RunMotors(&Motor3,Run3);
-  }
-  
-  if (Run4 > 2000)
-  {
-    Run4 = 2000;
-    RunMotors(&Motor4,Run4);
-  }
-  else if(Run4 < 1050)
-  {
-    Run4 = 1050;
-    RunMotors(&Motor4,Run4);
-  }
-  else
-  {
-    RunMotors(&Motor4,Run4);
-  }
-}
-/*
- *  MOTION TEST FUNCTIONS
- */
-void PitchControl(int x,int y)
-{
-  RunMotors(&Motor1,y+x);
-  RunMotors(&Motor2,y+x);
-  RunMotors(&Motor3,y-x);
-  RunMotors(&Motor4,y-x);
-}
-void RollControl(int x,int y)
-{
-  RunMotors(&Motor1,y+x);
-  RunMotors(&Motor2,y-x);
-  RunMotors(&Motor3,y-x);
-  RunMotors(&Motor4,y+x);
-}
-void YawControl(int x,int y)
-{
-  RunMotors(&Motor1,y+x);
-  RunMotors(&Motor2,y-x);
-  RunMotors(&Motor3,y+x);
-  RunMotors(&Motor4,y-x);
+  MotorMix(Run1);
+  MotorMix(Run2);
+  MotorMix(Run3);
+  MotorMix(Run4);
+  MotorMix(Run5);
+  MotorMix(Run6);
 }
 /*
  *   ALTITUDE HOLD ALGORITHM

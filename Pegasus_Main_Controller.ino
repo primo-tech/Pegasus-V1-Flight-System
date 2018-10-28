@@ -112,6 +112,13 @@ void loop()
 { 
   timer = millis();
 
+  RunMotors(&Motor1,1500);
+  RunMotors(&Motor2,1500);
+  RunMotors(&Motor3,1500);
+  RunMotors(&Motor4,1500);
+  RunMotors(&Motor5,1200);
+  RunMotors(&Motor6,1200);
+  
   xA = Axis_xyz();
   yA = Axis_xyz()+1;
   zA = Axis_xyz()+2;

@@ -290,21 +290,21 @@ void FullStop()
   RunMotors(&Motor5,1000);
   RunMotors(&Motor6,1000);
 }
-void MotorMix(int x)
+void MotorMix(Servo x, int y)
 {
-  if (x > 2000)
+  if (y > 2000)
   {
-    x = 2000;
-    RunMotors(&Motor3,x);
+    y = 2000;
+    RunMotors(&x,y);
   }
-  else if(x < 1050)
+  else if(y < 1050)
   {
-    x = 1050;
-    RunMotors(&Motor3,x);
+    y = 1050;
+    RunMotors(&x,y);
   }
   else
   {
-    RunMotors(&Motor3,x);
+    RunMotors(&x,y);
   }
 }
 void FlightControl(int v,int x,int y,int z)
@@ -316,12 +316,12 @@ void FlightControl(int v,int x,int y,int z)
   int Run5 = v-x-y+z;     // Top Rear
   int Run6 = v-x+y-z;     // Bottom Rear
   
-  MotorMix(Run1);
-  MotorMix(Run2);
-  MotorMix(Run3);
-  MotorMix(Run4);
-  MotorMix(Run5);
-  MotorMix(Run6);
+  MotorMix(Motor1,Run1);
+  MotorMix(Motor2,Run2);
+  MotorMix(Motor3,Run3);
+  MotorMix(Motor4,Run4);
+  MotorMix(Motor5,Run5);
+  MotorMix(Motor6,Run6);
 }
 /*
  *   ALTITUDE HOLD ALGORITHM

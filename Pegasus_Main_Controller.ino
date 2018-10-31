@@ -4,10 +4,9 @@
  */
 //--------------------------------------------------------------------------------------------------------------------
 
-#include <Wire.h>
-#include <Servo.h>
-#include <BME280I2C.h>
-#include <MPU6050.h>
+#include "init.h"
+#include "motors.h"
+#include "sensorRead.h"
 
 //---------------------------------------------------------------------------------------------------------------
 /*
@@ -23,46 +22,20 @@ unsigned long shutdowntime;
 float timeStep = 0.01;
 bool breakout = 0;
 /*
- * IMU VALUES
- */
-float gpitch = 0, groll = 0, gyaw = 0;
-float angle_pitch_output, angle_roll_output;
-boolean set_gyro_angles;
-/*
- * BAROMETER VALUES
- */
-double R = 8.3144598;
-double g = 9.80665;
-double M = 0.0289644;
-double Pb = 101325;
-double num=0,dnum=0,h=0,hb = 0;
-/*
  * RECEIVER VALUES
  */
 unsigned long int aa,bb,cc;
 int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
 /*
- * MOTOR CONNECTIONS
- */
-int M1 = 3;     // Top Left
-int M2 = 5;     // Bottom Left
-int M3 = 6;     // Top Right
-int M4 = 9;     // Bottom Right
-int M5 = 10;    // Top Rear
-int M6 = 11;    // Bottom Rear
-/*
  * PID VARIABLES
  */
-int prevError  = 0;
 int a  = 0,aT  = 0;
 int b  = 0,bT  = 0;
 int c  = 0,cT  = 0;
-int Setpoint1, Input1;
+
 int PitchSetPoint = 0;
 int RollSetPoint = 0;
 int YawSetPoint = 0;
-
-double p=0,i=0,d=0,cont=0;
 
 unsigned long timeBetFrames = 0;
 
@@ -72,19 +45,14 @@ int *xA;
 int *yA;
 int *zA;
 int *ThrottleSetPoint;
-int *ThrottleSetPoint1;
-int *ThrottleSetPoint2;
-int *ThrottleSetPoint3;
-int *ThrottleSetPoint4;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
  */
 //--------------------------------------------------------------------------------------------------------------------
-Servo Motor1,Motor2,Motor3,Motor4,Motor5,Motor6;
-MPU6050 mpu;
-BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
-                  // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
+Motors motor;                   // Instantiate motor control class
+Initialise inital;              // Instantiate initialisation class
+Sensor readIn;                  // Instantiate Sensor class
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -99,9 +67,8 @@ void setup()
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(2), read_me, FALLING); // enabling interrupt at pin 2
-
-  init_sensors();
-  init_motors();
+  inital.init_sensors();          // intialise IMU and Barometer
+  inital.init_motors();           // intialise motors and calibrate IMU
 }
 //------------------------------------------------------------------------------------------------------------------
 /*
@@ -110,46 +77,20 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------
 void loop()
 { 
-  timer = millis();
-
-  RunMotors(&Motor1,1500);
-  RunMotors(&Motor2,1500);
-  RunMotors(&Motor3,1500);
-  RunMotors(&Motor4,1500);
-  RunMotors(&Motor5,1200);
-  RunMotors(&Motor6,1200);
-  
-  xA = Axis_xyz();
-  yA = Axis_xyz()+1;
-  zA = Axis_xyz()+2;
-
-  Serial.print(*xA+3);
-  Serial.print("\t");
-  Serial.print(*yA+1);
-  Serial.print("\t");
-  Serial.print(*zA);
-  Serial.print("\t");
-  Serial.println(Altitude());
-  
-  /*
-  MainLoop();
-  
-  read_rc();
+  MainLoop();            // run main flight controll loop
+             //IF loop is broken out of...
+  read_rc();             // read receiver values          
   
   if (ch[2] < 1100)
   {
     breakout = 0;
-    delay(1000);
-    MainLoop();
+    delay(1000);        //  if yaw stick is held at the extreme lefmost position
+    MainLoop();         //  restart main flight loop
   }
   else
   {
-    FullStop();
+    motor.FullStop();  // otherwise set all motor values to 0
   }
-  */
-  
-  timeBetFrames = millis() - timer;
-  delay((timeStep*2000) - timeBetFrames); //Run at 50Hz
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -157,28 +98,27 @@ void loop()
  */
 //-------------------------------------------------------------------------------------------------------------
 /*
- *   MAIN FLIGHT FUNCTIONALITY                        PID GAINS             
- */
-                                            double prop = 6,inte = 1,deriv = 6;
+ *   MAIN FLIGHT FUNCTIONALITY                             
+ */                                   
 void MainLoop()
 {
   while(breakout != 1)
   {
     timer = millis();
   
-    read_rc();
+    read_rc();                         // begin decoding PPM values
    
-    xA = Axis_xyz();
-    yA = Axis_xyz()+1;
-    zA = Axis_xyz()+2;
-    
-    ThrottleSetPoint =  ThrottleControl();
+    xA = readIn.Axis_xyz();
+    yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
+    zA = readIn.Axis_xyz()+2;
+  
+    ThrottleSetPoint =  ThrottleControl();            // read in throttle setpoint
     if(*ThrottleSetPoint > 1050)
     {
         PitchSetPoint = map(ch[3],1008,2008,30,-30);
-        RollSetPoint = map(ch[4],1008,2008,30,-30);
-        YawSetPoint = map(ch[2],1076,1936,-30,30);
-        shutdowntime = 0;
+        RollSetPoint = map(ch[4],1008,2008,30,-30);   // read in roll pitch and yaw setpoint values from receiver
+        YawSetPoint = map(ch[2],1076,1936,-30,30);    // and map to between 0 and 30 degrees 
+        shutdowntime = 0;                             // keep a running count of time within loop
     }
     else
     {
@@ -186,117 +126,33 @@ void MainLoop()
         RollSetPoint =0;
         YawSetPoint =0;
       
-        shutdowntime += (millis()- timer)*10;
+        shutdowntime += (millis()- timer)*10;           
 
-        if( shutdowntime > 2000)
-        {
+        if( shutdowntime > 2000)                  // if running count exceed 2 seconds break out of main loop
+        {                                         // and reset all setpoints to zero 
           breakout = 1;
         }
     }
 
-    a = error(*xA+4,PitchSetPoint);
-    b = error(*yA+1,RollSetPoint);
-    c = error(*zA,YawSetPoint);
+    a = motor.error(*xA+5,PitchSetPoint);
+    b = motor.error(*yA+1,RollSetPoint);    // calculated error from setpoints
+    c = motor.error(*zA,YawSetPoint);
    
     aT += a;
-    bT += b;
+    bT += b;                                 // Calculate sum of setpoint errors
     cT += c;
    
-    MP = pid(a,aT,prop,inte,deriv,timeBetFrames);
-    MR = pid(b,bT,prop,inte,deriv,timeBetFrames);
-    MY = pid(c,cT,prop,inte,deriv,timeBetFrames);
+    MP = motor.pid(a,aT,timeBetFrames);
+    MR = motor.pid(b,bT,timeBetFrames);       // Calculate roll Ptich and yaw PID values
+    MY = motor.pid(c,cT,timeBetFrames);
    
-    FlightControl(*ThrottleSetPoint,MP,MR,MY);
+    motor.FlightControl(*ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
     delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
   }
-}
-/*
- *  CALCULATING THE ERROR                     
- */
-int error(int a, int b)
-{
-    int c;
-    
-    c = a - b;
-    return(c);
-}
-/*
- *   CALCULATING THE PID GAIN VALUES
- */
-double pid(int InputError,int InputErrorTotal,double Kp,double Ki,double Kd,unsigned long timeBetFrames)
-{ 
-    p = InputError*Kp;
-    i = InputErrorTotal*Ki*timeBetFrames;
-    d = (Kd*(InputError-prevError))/timeBetFrames;
-    
-    prevError = InputError;
-    
-    cont = p + i + d;
-    if(cont > 250 )
-    {
-      cont = 250;
-      return(cont);
-    }
-    else if(cont < -250)
-    {
-      cont = -250;
-      return(cont);
-    }
-    else
-    {
-      return(cont);
-    }
-}
-/*
- * CONTROLLING THE MOTORS
- */
-void RunMotors(Servo* Motor,int Gain)
-{
-    int x = 0;
-    
-    if(Gain > 2000)
-    {
-        x = 2000;                      // Actuator Limit Saturation 
-    }
-    if(Gain < 1000)
-    {
-        x = 1000;                      // Actuator Limit Saturation 
-    }
-    else
-    {
-        x = Gain;              // add the PID gain to the initial velocity
-    }
-    Motor->writeMicroseconds(x);
-}
-/*
- * INITIALISING THE MOTORS
- */
-void init_motors()
-{
-  mpu.calibrateGyro();
-  mpu.setThreshold(10);
-  
-  Motor1.attach(M1);
-  Motor2.attach(M2);
-  Motor3.attach(M3);
-  Motor4.attach(M4);
-  Motor5.attach(M5);
-  Motor6.attach(M6);
-  
-  RunMotors(&Motor1,1000);
-  RunMotors(&Motor2,1000);
-  RunMotors(&Motor3,1000);
-  RunMotors(&Motor4,1000);
-  RunMotors(&Motor5,1000);
-  RunMotors(&Motor6,1000);
-  delay(5000);
-}
+}                    
 
-/*
- *   RUN MOTORS
- */
 int *ThrottleControl()
 {
   static int val[5];
@@ -306,178 +162,6 @@ int *ThrottleControl()
   val[3] =  map(ch[1],1080,1970,1060,2000);
   val[4] =  map(ch[1],1080,1970,1050,2000);
   return(val);
-}
-void FullStop()
-{
-  RunMotors(&Motor1,1000);
-  RunMotors(&Motor2,1000);
-  RunMotors(&Motor3,1000);
-  RunMotors(&Motor4,1000);
-  RunMotors(&Motor5,1000);
-  RunMotors(&Motor6,1000);
-}
-void MotorMix(Servo x, int y)
-{
-  if (y > 2000)
-  {
-    y = 2000;
-    RunMotors(&x,y);
-  }
-  else if(y < 1050)
-  {
-    y = 1050;
-    RunMotors(&x,y);
-  }
-  else
-  {
-    RunMotors(&x,y);
-  }
-}
-void FlightControl(int v,int x,int y,int z)
-{
-  int Run1 = v+x+y+z;     // Top Left
-  int Run2 = v+x+y-z;     // Bottom Left
-  int Run3 = v+x-y-z;     // Top Right
-  int Run4 = v+x-y+z;     // Bottom Right
-  int Run5 = v-x-y+z;     // Top Rear
-  int Run6 = v-x+y-z;     // Bottom Rear
-  
-  MotorMix(Motor1,Run1);
-  MotorMix(Motor2,Run2);
-  MotorMix(Motor3,Run3);
-  MotorMix(Motor4,Run4);
-  MotorMix(Motor5,Run5);
-  MotorMix(Motor6,Run6);
-}
-/*
- *   ALTITUDE HOLD ALGORITHM
- */
-void AltitudeControl(int al,double x)
-{
-    double b = x;
-    
-    if( al > 1750)
-    {
-      b = b + 1.5;
-      Setpoint1 = b;
-    }
-    else if( al > 1650 &&  al < 1750)
-    {
-      b = b + 1;
-      Setpoint1 = b;
-    }
-    else if( al > 1550 &&  al < 1650)
-    {
-      b = b + 0.5;
-      Setpoint1 = b;
-    }
-    else if( al < 1450 && al > 1350)
-    {
-      b = b - 0.5;
-      Setpoint1 = b;
-    }
-    else if( al < 1350 && al > 1250)
-    {
-      b = b - 1;
-      Setpoint1 = b;
-    }
-    else if( al < 1250)
-    {
-      b = b - 1.5;
-      Setpoint1 = b;
-    }
-    else if( al > 1450 && al < 1550)
-    {
-      Setpoint1 = b;
-    }
-}
-/*
- *   CALCULATING THE ALTITUDE FROM BAROMETER
- */
-double Altitude()
-{
-   float temp(NAN), hum(NAN), pres(NAN);
-
-   BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
-   BME280::PresUnit presUnit(BME280::PresUnit_Pa);
-
-   bme.read(pres, temp, hum, tempUnit, presUnit);
-   double T = temp + 273;
-   
-   num = log(pres/Pb) * T * R;
-   dnum = g * M * -1;
-   h = (num/dnum)+ hb;
-   
-   return(h);
-}
-/*
- *   CALCULATING THE VALUES FROM IMU
- */
-int *Axis_xyz()
-{
-   static int Axis[3];
-   Vector norm = mpu.readNormalizeGyro();
-   Vector normAccel = mpu.readNormalizeAccel();
-   
-   gpitch = gpitch + norm.YAxis * timeStep;
-   groll = groll + norm.XAxis * timeStep;
-   gyaw = gyaw + norm.ZAxis * timeStep;
-   
-   int Pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
-   int Roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
-   
-   if(set_gyro_angles)
-   {                                                 //If the IMU is already started
-     gpitch = gpitch * 0.985 + Pitch * 0.015;     //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
-     groll = groll * 0.985 + Roll * 0.015;        //Correct the drift of the gyro roll angle with the accelerometer roll angle
-   }
-   else
-   {                                                                //At first start
-     gpitch = Pitch;                                     //Set the gyro pitch angle equal to the accelerometer pitch angle 
-     groll = Roll;                                       //Set the gyro roll angle equal to the accelerometer roll angle 
-     set_gyro_angles = true;                                            //Set the IMU started flag
-   }
-   
-   //To dampen the pitch and roll angles a complementary filter is used
-   angle_pitch_output = angle_pitch_output * 0.9 +  gpitch * 0.1;   //Take 90% of the output pitch value and add 10% of the raw pitch value
-   angle_roll_output = angle_roll_output * 0.9 +  groll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
-   
-   Axis[0] = gpitch;
-   Axis[1] = groll;
-   Axis[2] = gyaw;
-   
-   return(Axis); 
-}
-/*
- *   INITIALISING THE SENSORS
- */
-void init_sensors()
-{
-  while(!Serial) {} // Wait
-  Serial.println("");
-  while(!bme.begin())
-  {
-    Serial.println("Could not find BME280 sensor!");
-    delay(1000);
-  }
-
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
-    delay(500);
-  }
-  
-  switch(bme.chipModel())
-  {
-     case BME280::ChipModel_BME280:
-       Serial.println("Found BME280 sensor! Success.");
-       break;
-     case BME280::ChipModel_BMP280:
-       Serial.println("Found BMP280 sensor! No Humidity available.");
-       break;
-     default:
-       Serial.println("Found UNKNOWN sensor! Error!");
-  }
 }
 /*
  *   READ PPM VALUES FROM PIN 2

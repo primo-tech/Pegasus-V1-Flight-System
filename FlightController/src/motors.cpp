@@ -99,28 +99,45 @@ void Motors::FullStop()
 
 double Motors::pid(int InputError,int InputErrorTotal,unsigned long timeBetFrames)
 {
+  bool intOn;
+  double new_i;
+
+  new_i = i+InputErrorTotal;
+  
   p = InputError*Kp;
   i = InputErrorTotal*Ki*timeBetFrames;
   d = (Kd*(InputError-prevError))/timeBetFrames;
-    
+
   prevError = InputError;
     
   cont = p + i + d;
+
+  intOn = true;
   
-  if(cont > 250 )
+  if(cont > 500 )
   {
-    cont = 250;
-    return(cont);
+    cont = 500;
+    if (InputError > 0)
+    {
+      intOn = false;
+    }
   }
-  else if(cont < -250)
+  else if(cont < -500 )
   {
-    cont = -250;
-    return(cont);
+    cont = -500;
+    
+    if (InputError < 0)
+    {
+      intOn = false;
+    }
   }
-  else
+  
+  if(intOn)
   {
-    return(cont);
+    i = new_i;
   }
+  
+  return(cont);
 }
 
 void Motors::MotorMix(Servo x, int y)

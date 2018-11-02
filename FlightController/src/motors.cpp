@@ -114,17 +114,17 @@ double Motors::pid(int InputError,int InputErrorTotal,unsigned long timeBetFrame
 
   intOn = true;
   
-  if(cont > 500 )
+  if(cont > 100 )
   {
-    cont = 500;
+    cont = 100;
     if (InputError > 0)
     {
       intOn = false;
     }
   }
-  else if(cont < -500 )
+  else if(cont < -100 )
   {
-    cont = -500;
+    cont = -100;
     
     if (InputError < 0)
     {
@@ -145,15 +145,14 @@ void Motors::MotorMix(Servo x, int y)
   if (y > 2000)
   {
     y = 2000;
-    RunMotors(&x,y);
   }
   else if(y < 1050)
   {
     y = 1050;
-    RunMotors(&x,y);
   }
   else
   {
-    RunMotors(&x,y);
+    y = y;
   }
+  RunMotors(&x,y);
 }                                

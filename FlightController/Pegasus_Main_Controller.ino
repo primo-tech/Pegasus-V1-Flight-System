@@ -33,6 +33,7 @@ int a  = 0,aT  = 0;
 int b  = 0,bT  = 0;
 int c  = 0,cT  = 0;
 
+int ThrottleSetPoint;
 int PitchSetPoint = 0;
 int RollSetPoint = 0;
 int YawSetPoint = 0;
@@ -44,7 +45,6 @@ long  MP,MR,MY;
 int *xA;
 int *yA;
 int *zA;
-int *ThrottleSetPoint;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -111,9 +111,15 @@ void MainLoop()
     xA = readIn.Axis_xyz();
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
     zA = readIn.Axis_xyz()+2;
+
+    Serial.print(*xA+4);
+    Serial.print("\t");
+    Serial.print(*yA+1);
+    Serial.print("\t");
+    Serial.println(*zA);
   
-    ThrottleSetPoint =  ThrottleControl();            // read in throttle setpoint
-    if(*ThrottleSetPoint > 1050)
+    ThrottleSetPoint =  map(ch[1],1080,1970,1000,2000);            // read in throttle setpoint
+    if(ThrottleSetPoint > 1050)
     {
         PitchSetPoint = map(ch[3],1008,2008,30,-30);
         RollSetPoint = map(ch[4],1008,2008,30,-30);   // read in roll pitch and yaw setpoint values from receiver
@@ -134,7 +140,7 @@ void MainLoop()
         }
     }
 
-    a = motor.error(*xA+5,PitchSetPoint);
+    a = motor.error(*xA+4,PitchSetPoint);
     b = motor.error(*yA+1,RollSetPoint);    // calculated error from setpoints
     c = motor.error(*zA,YawSetPoint);
    
@@ -146,23 +152,12 @@ void MainLoop()
     MR = motor.pid(b,bT,timeBetFrames);       // Calculate roll Ptich and yaw PID values
     MY = motor.pid(c,cT,timeBetFrames);
    
-    motor.FlightControl(*ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
+    motor.FlightControl(ThrottleSetPoint-200,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*2000) - timeBetFrames); //Run at 100Hz
   }
 }                    
-
-int *ThrottleControl()
-{
-  static int val[5];
-  val[0] =  map(ch[1],1080,1970,1000,2000);
-  val[1] =  map(ch[1],1080,1970,1050,2000);
-  val[2] =  map(ch[1],1080,1970,1050,2000);
-  val[3] =  map(ch[1],1080,1970,1060,2000);
-  val[4] =  map(ch[1],1080,1970,1050,2000);
-  return(val);
-}
 /*
  *   READ PPM VALUES FROM PIN 2
  */

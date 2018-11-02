@@ -28,7 +28,7 @@ class Motors
    private:
     int prevError  = 0;
     double p=0,i=0,d=0,cont=0;
-                                  double Kp = 10,Ki = 1,Kd = 3;                   
+                                  double Kp = 150,Ki = 10,Kd = 100;                   
 };
 
 #endif _MOTORS_

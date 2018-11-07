@@ -21,7 +21,7 @@ class Motors
     double pid(int InputError,int InputErrorTotal,unsigned long timeBetFrames);
     void AltitudeControl(int al,double x);
     void FlightControl(int v,int x,int y,int z);
-    void MotorMix(Servo x, int y);
+    void MotorMix(Servo x, int y, int lower, int upper);
     void FullStop();
     int error(int a, int b);
 

@@ -70,6 +70,23 @@ int Motors::error(int a, int b)
   return(c);
 }
 
+void Motors::MotorMix(Servo x, int y, int lower, int upper)
+{
+  if (y > upper)
+  {
+    y = upper;
+  }
+  else if(y < lower)
+  {
+    y = lower;
+  }
+  else
+  {
+    y = y;
+  }
+  RunMotors(&x,y);
+}
+
 void Motors::FlightControl(int v,int x,int y,int z)
 {
   int Run1 = v+x+y+z;     // Top Left
@@ -79,12 +96,12 @@ void Motors::FlightControl(int v,int x,int y,int z)
   int Run5 = v-x+y+z;     // Top Rear
   int Run6 = v-x-y-z;     // Bottom Rear
   
-  MotorMix(Motor1,Run1);
-  MotorMix(Motor2,Run2);
-  MotorMix(Motor3,Run3);
-  MotorMix(Motor4,Run4);
-  MotorMix(Motor5,Run5);
-  MotorMix(Motor6,Run6);
+  MotorMix(Motor1,Run1,1050,2000);
+  MotorMix(Motor2,Run2,1050,2000);
+  MotorMix(Motor3,Run3,1050,2000);
+  MotorMix(Motor4,Run4,1050,2000);
+  MotorMix(Motor5,Run5,1050,2000);
+  MotorMix(Motor6,Run6,1050,2000);
 }
 
 void Motors::FullStop()
@@ -139,20 +156,3 @@ double Motors::pid(int InputError,int InputErrorTotal,unsigned long timeBetFrame
   
   return(cont);
 }
-
-void Motors::MotorMix(Servo x, int y)
-{
-  if (y > 2000)
-  {
-    y = 2000;
-  }
-  else if(y < 1050)
-  {
-    y = 1050;
-  }
-  else
-  {
-    y = y;
-  }
-  RunMotors(&x,y);
-}                                

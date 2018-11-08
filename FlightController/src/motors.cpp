@@ -18,55 +18,55 @@ void Motors::RunMotors(Servo* Motor,int Gain)
     }
     else
     {
-        x = Gain;              // add the PID gain to the initial velocity
+        x = Gain;              
     }
-    Motor->writeMicroseconds(x);
+    Motor->writeMicroseconds(x);       // write gain to motors
 }
 
 void Motors::AltitudeControl(int al,double x)
 {
   double b = x;
-    
+                         // checks commanded value, compare that with actual value and returns compensated value
    if( al > 1750)
    {
      b = b + 1.5;
-     Setpoint1 = b;
+     Setpoint = b;
    }
    else if( al > 1650 &&  al < 1750)
    {
      b = b + 1;
-     Setpoint1 = b;
+     Setpoint = b;
    }
    else if( al > 1550 &&  al < 1650)
    {
      b = b + 0.5;
-     Setpoint1 = b;
+     Setpoint = b;
    }
    else if( al < 1450 && al > 1350)
    {
      b = b - 0.5;
-      Setpoint1 = b;
+      Setpoint = b;
    }
    else if( al < 1350 && al > 1250)
    {
      b = b - 1;
-     Setpoint1 = b;
+     Setpoint = b;
    }
    else if( al < 1250)
    {
      b = b - 1.5;
-     Setpoint1 = b;
+     Setpoint = b;
    }
    else if( al > 1450 && al < 1550)
    {
-     Setpoint1 = b;
+     Setpoint = b;
    }
 }
 
 int Motors::error(int a, int b)
 {
   int c;
-  c = a - b;
+  c = a - b;                  // calculate the difference between a and b return as error
   return(c);
 }
 
@@ -76,8 +76,8 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
   {
     y = upper;
   }
-  else if(y < lower)
-  {
+  else if(y < lower)     // set upper and lower motor limits as each motor is different
+  {                      // lower limit = just when the motor starts moving
     y = lower;
   }
   else
@@ -131,6 +131,7 @@ double Motors::pid(int InputError,int InputErrorTotal,unsigned long timeBetFrame
 
   intOn = true;
   
+  // integral anti windup
   if(cont > 100 )
   {
     cont = 100;

@@ -140,12 +140,12 @@ void MainLoop()
         }
     }
 
-    a = motor.error(*xA+4,PitchSetPoint);
-    b = motor.error(*yA+1,RollSetPoint);    // calculated error from setpoints
-    c = motor.error(*zA,YawSetPoint);
+    a = motor.error(PitchSetPoint,*xA+4);
+    b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints
+    c = motor.error(YawSetPoint,*zA);        // error = setpoint - sensorValue
    
     aT += a;
-    bT += b;                                 // Calculate sum of setpoint errors
+    bT += b;                                 // Calculate sum of setpoint errors over time
     cT += c;
    
     MP = motor.pid(a,aT,timeBetFrames);

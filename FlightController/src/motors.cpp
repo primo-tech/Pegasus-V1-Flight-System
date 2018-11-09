@@ -96,10 +96,10 @@ void Motors::FlightControl(int v,int x,int y,int z)
   int Run5 = v-x+y+z;     // Top Rear
   int Run6 = v-x-y-z;     // Bottom Rear
   
-  MotorMix(Motor1,Run1,1050,2000);
-  MotorMix(Motor2,Run2,1050,2000);
-  MotorMix(Motor3,Run3,1050,2000);
-  MotorMix(Motor4,Run4,1050,2000);
+  MotorMix(Motor1,Run1,1170,2000);
+  MotorMix(Motor2,Run2,1255,2000);
+  MotorMix(Motor3,Run3,1275,2000);
+  MotorMix(Motor4,Run4,1282,2000);
   MotorMix(Motor5,Run5,1050,2000);
   MotorMix(Motor6,Run6,1050,2000);
 }

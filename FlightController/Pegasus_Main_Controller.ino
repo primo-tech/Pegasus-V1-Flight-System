@@ -113,13 +113,11 @@ int RollSetPoint = 0;
     xA = readIn.Axis_xyz();
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
     //zA = readIn.Axis_xyz()+2;
-/*
+
     Serial.print(*xA+3);
     Serial.print("\t");
-    Serial.print(*yA+1);
-    Serial.print("\t");
-    Serial.println(*zA);
-*/  
+    Serial.println(*yA+1);
+    
     ThrottleSetPoint =  map(ch[1],1080,1970,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
     {
@@ -145,19 +143,11 @@ int RollSetPoint = 0;
     a = motor.error(PitchSetPoint,*xA+3);
     b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints
     //c = motor.error(YawSetPoint,*zA);        // error = setpoint - sensorValue
-
-    Serial.print(a);
-    Serial.print("\t");
-    
-    Serial.print(motor.InputErrorTotal);
     
     MP = motor.pid(a,timeBetFrames);
     MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
     //MY = motor.pid(c,cT,timeBetFrames);
-    MY = map(ch[2],1070,1930,-200,200);
-
-    Serial.print("\t");
-    Serial.println(MP);
+    MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
     
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     

@@ -15,10 +15,14 @@
 class Motors                  // create motor control class
 {
   public:
-    int Setpoint;             // variable for altitute hold setpoint 
+    int Setpoint;             // variable for altitute hold setpoint
+    int prevError  = 0;
+    int InputErrorTotal = 0;
+    double p=0,i=0,d=0,cont=0;
+    int y = 0, N = 10;  
 
     int error(int a, int b);  // error for feedback calculations
-    double pid(int InputError,int InputErrorTotal,unsigned long timeBetFrames);  // PID controller
+    double pid(int InputError,unsigned long timeBetFrames);  // PID controller
     void RunMotors(Servo* Motor,int Gain);   // transmits commands to motors
     void MotorMix(Servo x, int y, int lower, int upper);  // motor mixing algorithm for roll, pitch and yaw motion
     void FlightControl(int v,int x,int y,int z);   // transmitts mixed values to motors
@@ -26,9 +30,8 @@ class Motors                  // create motor control class
     void FullStop();                               // all motors set to lowest command value or off position
 
    private:
-    int prevError  = 0;
-    double p=0,i=0,d=0,cont=0;                     // PID variables and gains
-                                  double Kp = 150,Ki = 10,Kd = 100;                   
+                        // PID variables and gains
+                                  double Kp = 3,Ki = 0.3,Kd = 2;                   
 };
 
 #endif _MOTORS_

@@ -117,11 +117,12 @@ void Motors::FullStop()
 double Motors::pid(int InputError,unsigned long timeBetFrames)
 {
   InputErrorTotal += InputError;
+  yT += y;
   
   p = InputError*Kp;
   i = InputErrorTotal*Ki*timeBetFrames;
   d = (Kd*(InputError-prevError))/timeBetFrames;
-  y = N*(InputError - (InputErrorTotal*timeBetFrames*y));   // Derivative Prefilter
+  y = N*(InputError - (yT*timeBetFrames));   // Derivative Prefilter
   d = y*Kd;
   cont = p + i + d;
   prevError = InputError;

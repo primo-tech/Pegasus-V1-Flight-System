@@ -26,17 +26,7 @@ bool breakout = 0;
  */
 unsigned long int aa,bb,cc;
 int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
-/*
- * PID VARIABLES
- */
-int a  = 0,aT  = 0;
-int b  = 0,bT  = 0;
-int c  = 0,cT  = 0;
 
-int ThrottleSetPoint;
-int PitchSetPoint = 0;
-int RollSetPoint = 0;
-int YawSetPoint = 0;
 
 unsigned long timeBetFrames = 0;
 
@@ -44,7 +34,7 @@ long  MP,MR,MY;
 
 int *xA;
 int *yA;
-int *zA;
+//int *zA;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -102,6 +92,18 @@ void loop()
  */                                   
 void MainLoop()
 {
+  /*
+ * PID VARIABLES
+ */
+int a  = 0;
+int b  = 0;
+//int c  = 0;
+
+int ThrottleSetPoint = 0;
+int PitchSetPoint = 0;
+int RollSetPoint = 0;
+//int YawSetPoint = 0;
+
   while(breakout != 1)
   {
     timer = millis();
@@ -110,27 +112,27 @@ void MainLoop()
    
     xA = readIn.Axis_xyz();
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
-    zA = readIn.Axis_xyz()+2;
-
-    Serial.print(*xA+4);
+    //zA = readIn.Axis_xyz()+2;
+/*
+    Serial.print(*xA+3);
     Serial.print("\t");
     Serial.print(*yA+1);
     Serial.print("\t");
     Serial.println(*zA);
-  
-    ThrottleSetPoint =  map(ch[1],1080,1970,1000,2000);            // read in throttle setpoint
+*/  
+    ThrottleSetPoint =  map(ch[1],1080,1970,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
     {
         PitchSetPoint = map(ch[3],1008,2008,30,-30);
         RollSetPoint = map(ch[4],1008,2008,30,-30);   // read in roll pitch and yaw setpoint values from receiver
-        YawSetPoint = map(ch[2],1076,1936,-30,30);    // and map to between 0 and 30 degrees 
+        //YawSetPoint = map(ch[2],1076,1936,-30,30);    // and map to between 0 and 30 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
     else
     {
         PitchSetPoint = 0;
         RollSetPoint =0;
-        YawSetPoint =0;
+        //YawSetPoint =0;
       
         shutdowntime += (millis()- timer)*10;           
 
@@ -140,22 +142,27 @@ void MainLoop()
         }
     }
 
-    a = motor.error(PitchSetPoint,*xA+4);
+    a = motor.error(PitchSetPoint,*xA+3);
     b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints
-    c = motor.error(YawSetPoint,*zA);        // error = setpoint - sensorValue
-   
-    aT += a;
-    bT += b;                                 // Calculate sum of setpoint errors over time
-    cT += c;
-   
-    MP = motor.pid(a,aT,timeBetFrames);
-    MR = motor.pid(b,bT,timeBetFrames);       // Calculate roll Ptich and yaw PID values
-    MY = motor.pid(c,cT,timeBetFrames);
-   
-    motor.FlightControl(ThrottleSetPoint-200,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
+    //c = motor.error(YawSetPoint,*zA);        // error = setpoint - sensorValue
+
+    Serial.print(a);
+    Serial.print("\t");
+    
+    Serial.print(motor.InputErrorTotal);
+    
+    MP = motor.pid(a,timeBetFrames);
+    MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
+    //MY = motor.pid(c,cT,timeBetFrames);
+    MY = map(ch[2],1070,1930,-200,200);
+
+    Serial.print("\t");
+    Serial.println(MP);
+    
+    motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*2000) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*2500) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

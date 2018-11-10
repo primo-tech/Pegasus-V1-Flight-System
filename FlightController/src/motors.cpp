@@ -128,17 +128,17 @@ double Motors::pid(int InputError,unsigned long timeBetFrames)
   prevError = InputError;
   
   // integral anti-windup
-  if(cont > 200 )
+  if(cont > 1000 )
   {
-    cont = 200;
+    cont = 1000;
     if (InputError > 0)
     {
       InputErrorTotal = 0;
     }
   }
-  else if(cont < -200 )
+  else if(cont < -1000 )
   {
-    cont = -200;
+    cont = -1000;
     if (InputError < 0)
     {
       InputErrorTotal = 0;
@@ -146,7 +146,7 @@ double Motors::pid(int InputError,unsigned long timeBetFrames)
   }
   
   //Derivative Setpoint Weighting
-  if(InputError == 0)
+  if(InputError < 1 && InputError > -1)
   {
     d  = 0;
   }

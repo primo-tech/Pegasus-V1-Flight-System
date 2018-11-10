@@ -89,12 +89,12 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
 
 void Motors::FlightControl(int v,int x,int y,int z)
 {
-  int Run1 = v+x+y+z;     // Top Left
-  int Run2 = v+x+y-z;     // Bottom Left
-  int Run3 = v+x-y-z;     // Top Right
-  int Run4 = v+x-y+z;     // Bottom Right
-  int Run5 = v-x+y+z;     // Top Rear
-  int Run6 = v-x-y-z;     // Bottom Rear
+  int Run1 = v-x-y-z;     // Top Left
+  int Run2 = v-x-y+z;     // Bottom Left
+  int Run3 = v-x+y+z;     // Top Right
+  int Run4 = v-x+y-z;     // Bottom Right
+  int Run5 = v+x-y-z;     // Top Rear
+  int Run6 = v+x+y+z;     // Bottom Rear
   
   MotorMix(Motor1,Run1,1170,2000);
   MotorMix(Motor2,Run2,1255,2000);
@@ -114,46 +114,41 @@ void Motors::FullStop()
   RunMotors(&Motor6,1000);
 }
 
-double Motors::pid(int InputError,int InputErrorTotal,unsigned long timeBetFrames)
+double Motors::pid(int InputError,unsigned long timeBetFrames)
 {
-  bool intOn;
-  double new_i;
-
-  new_i = i+InputErrorTotal;
+  InputErrorTotal += InputError;
   
   p = InputError*Kp;
   i = InputErrorTotal*Ki*timeBetFrames;
   d = (Kd*(InputError-prevError))/timeBetFrames;
-
-  prevError = InputError;
-    
+  y = N*(InputError - (InputErrorTotal*timeBetFrames*y));   // Derivative Prefilter
+  d = y*Kd;
   cont = p + i + d;
-
-  intOn = true;
+  prevError = InputError;
   
-  // integral anti windup
-  if(cont > 100 )
+  // integral anti-windup
+  if(cont > 200 )
   {
-    cont = 100;
+    cont = 200;
     if (InputError > 0)
     {
-      intOn = false;
+      InputErrorTotal = 0;
     }
   }
-  else if(cont < -100 )
+  else if(cont < -200 )
   {
-    cont = -100;
-    
+    cont = -200;
     if (InputError < 0)
     {
-      intOn = false;
+      InputErrorTotal = 0;
     }
   }
   
-  if(intOn)
+  //Derivative Setpoint Weighting
+  if(InputError == 0)
   {
-    i = new_i;
+    d  = 0;
   }
-  
+
   return(cont);
 }

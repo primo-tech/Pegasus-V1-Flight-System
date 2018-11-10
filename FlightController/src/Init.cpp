@@ -58,5 +58,5 @@ void Initialise::init_motors()
   motor.RunMotors(&Motor4,1000);          // set motors to lowest command value
   motor.RunMotors(&Motor5,1000);
   motor.RunMotors(&Motor6,1000);
-  delay(5000);
+  delay(10000);
 }

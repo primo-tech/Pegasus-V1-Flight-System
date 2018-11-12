@@ -89,17 +89,17 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
 
 void Motors::FlightControl(int v,int x,int y,int z)
 {
-  int Run1 = v-x-y-z;     // Top Left
-  int Run2 = v-x-y+z;     // Bottom Left
-  int Run3 = v-x+y+z;     // Top Right
-  int Run4 = v-x+y-z;     // Bottom Right
+  int Run1 = v-x+y-z;     // Top Left
+  int Run2 = v-x+y+z;     // Bottom Left
+  int Run3 = v-x-y+z;     // Top Right
+  int Run4 = v-x-y-z;     // Bottom Right
   int Run5 = v+x-y-z;     // Top Rear
-  int Run6 = v+x+y+z;     // Bottom Rear
+  int Run6 = v+x-y+z;     // Bottom Rear
   
-  MotorMix(Motor1,Run1,1170,2000);
-  MotorMix(Motor2,Run2,1255,2000);
-  MotorMix(Motor3,Run3,1275,2000);
-  MotorMix(Motor4,Run4,1282,2000);
+  MotorMix(Motor1,Run1,1300,2000);
+  MotorMix(Motor2,Run2,1300,2000);
+  MotorMix(Motor3,Run3,1300,2000);
+  MotorMix(Motor4,Run4,1300,2000);
   MotorMix(Motor5,Run5,1050,2000);
   MotorMix(Motor6,Run6,1050,2000);
 }
@@ -121,24 +121,24 @@ double Motors::pid(int InputError,unsigned long timeBetFrames)
   
   p = InputError*Kp;
   i = InputErrorTotal*Ki*timeBetFrames;
-  d = (Kd*(InputError-prevError))/timeBetFrames;
+  //d = (Kd*(InputError-prevError))/timeBetFrames;
   y = N*(InputError - (yT*timeBetFrames));   // Derivative Prefilter
-  d = y*Kd;
+  d = y*Kd/timeBetFrames;
   cont = p + i + d;
   prevError = InputError;
   
   // integral anti-windup
-  if(cont > 1000 )
+  if(cont > 200 )
   {
-    cont = 1000;
+    cont = 200;
     if (InputError > 0)
     {
       InputErrorTotal = 0;
     }
   }
-  else if(cont < -1000 )
+  else if(cont < -200 )
   {
-    cont = -1000;
+    cont = -200;
     if (InputError < 0)
     {
       InputErrorTotal = 0;

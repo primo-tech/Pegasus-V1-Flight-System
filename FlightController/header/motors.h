@@ -19,7 +19,7 @@ class Motors                  // create motor control class
     int prevError  = 0;
     int InputErrorTotal = 0;
     double p=0,i=0,d=0,cont=0;
-    int y = 0,yT = 0, N = 10;  
+    double y = 0,yT = 0, N = 0.2;  
 
     int error(int a, int b);  // error for feedback calculations
     double pid(int InputError,unsigned long timeBetFrames);  // PID controller
@@ -31,7 +31,7 @@ class Motors                  // create motor control class
 
    private:
                         // PID variables and gains
-                                  double Kp = 3,Ki = 0.3,Kd = 2;                   
+                                  double Kp = 5,Ki = 0.4,Kd = 4;                   
 };
 
 #endif _MOTORS_

@@ -32,9 +32,9 @@ unsigned long timeBetFrames = 0;
 
 long  MP,MR,MY;
 
-int *xA;
-int *yA;
-//int *zA;
+int *xA = 0;
+int *yA = 0;
+//int *zA = 0;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -114,9 +114,9 @@ int RollSetPoint = 0;
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
     //zA = readIn.Axis_xyz()+2;
 
-    Serial.print(*xA+3);
-    Serial.print("\t");
-    Serial.println(*yA+1);
+    //Serial.print(*xA+3);
+    //Serial.print("\t");
+    //Serial.println(*yA+1);
     
     ThrottleSetPoint =  map(ch[1],1080,1970,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
@@ -146,13 +146,13 @@ int RollSetPoint = 0;
     
     MP = motor.pid(a,timeBetFrames);
     MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
-    //MY = motor.pid(c,cT,timeBetFrames);
+    //MY = motor.pid(c,timeBetFrames);
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
-    
+   
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*2500) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*2000) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

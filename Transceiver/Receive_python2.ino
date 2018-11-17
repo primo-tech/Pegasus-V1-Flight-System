@@ -50,11 +50,11 @@ void resetData()
 void setPPMValuesFromData()
 {
   ppm[0] = map(data.T, 0, 255, 1000, 2000);
-  ppm[1] = map(data.YA,      0, 255, 1000, 2000);
-  ppm[2] = map(data.Y,    0, 255, 1000, 2000);
-  ppm[3] = map(data.X,     0, 255, 1000, 2000);  
-  ppm[4] = map(data.R,     0, 255, 1000, 2000);
-  ppm[5] = map(data.H,     0, 12, 1000, 2000);
+  ppm[1] = map(data.YA, 0, 255, 1000, 2000);
+  ppm[2] = map(data.X, 0, 255, 1000, 2000);
+  ppm[3] = map(data.Y, 0, 255, 1000, 2000);  
+  ppm[4] = map(data.R, 0, 255, 1000, 2000);
+  ppm[5] = map(data.H, 0, 12, 1000, 2000);
 }
 /**************************************************/
 
@@ -101,8 +101,8 @@ void recvData()
 }
 void loop()
 {
-    recvData();
-    unsigned long now = millis();
+  recvData();
+  unsigned long now = millis();
   if ( now - lastRecvTime > 1000 ) 
   {
     // signal lost?

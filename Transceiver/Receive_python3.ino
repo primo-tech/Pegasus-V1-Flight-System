@@ -28,7 +28,7 @@ MyData data;
 
 void resetData() 
 {
-  data.T = 128;
+  data.T = 0;
   data.X= 128;
   data.Y = 128;
   data.YA = 128;
@@ -54,14 +54,31 @@ void setup()
 
 void loop()
 {
-  data.X = map(analogRead(A1),0,1023,0,255);
-  data.Y = map(analogRead(A0),0,1023,0,255);
-  data.R = map(0,100,355,0,255);
-  data.T = map(200,0,1023,0,255);
-  data.YA = map(analogRead(A2),30,920,0,255);   
+  data.X = saturation(map(analogRead(A1),980,150,0,255));
+  data.Y = saturation(map(analogRead(A0),980,200,0,255));
+  data.R = 0;
+  data.T = saturation(map(analogRead(A3),950,100,0,255));
+  data.YA = saturation(map(analogRead(A2),980,20,0,255));  
   data.H = 1*100;
   data.H += 0*10;
   data.H += 0*1;
-  Serial.println(data.YA);
   radio.write(&data, sizeof(MyData));
 }
+
+int saturation(int x)
+{
+  if (x > 110 && x < 140)
+  {
+    x = 128;
+  }
+  else if(x >= 255)
+  {
+    x = 255;
+  }
+  else if(x <= 0)
+  {
+    x = 0;
+  }
+  return(x);
+}
+

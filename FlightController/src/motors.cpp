@@ -104,6 +104,16 @@ void Motors::FlightControl(int v,int x,int y,int z)
   MotorMix(Motor6,Run6,1050,2000);
 }
 
+void Motors::StartUp()
+{
+  RunMotors(&Motor1,1200);
+  RunMotors(&Motor2,1100);
+  RunMotors(&Motor3,1100);
+  RunMotors(&Motor4,1100);
+  RunMotors(&Motor5,1100);
+  RunMotors(&Motor6,1100);
+}
+
 void Motors::FullStop()
 {
   RunMotors(&Motor1,1000);
@@ -123,7 +133,7 @@ double Motors::pid(int InputError,unsigned long timeBetFrames)
   i = InputErrorTotal*Ki*timeBetFrames;
   //d = (Kd*(InputError-prevError))/timeBetFrames;
   y = N*(InputError - (yT*timeBetFrames));   // Derivative Prefilter
-  d = y*Kd/timeBetFrames;
+  d = y*Kd;
   cont = p + i + d;
   prevError = InputError;
   

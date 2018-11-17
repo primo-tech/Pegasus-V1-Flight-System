@@ -28,6 +28,7 @@ class Motors                  // create motor control class
     void FlightControl(int v,int x,int y,int z);   // transmitts mixed values to motors
     void AltitudeControl(int al,double x);         // altitude hold algorithm
     void FullStop();                               // all motors set to lowest command value or off position
+    void StartUp();                                // Right an intial value to all motors
 
    private:
                         // PID variables and gains

@@ -27,7 +27,6 @@ bool breakout = 0;
 unsigned long int aa,bb,cc;
 int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
 
-
 unsigned long timeBetFrames = 0;
 
 long  MP,MR,MY;
@@ -57,8 +56,6 @@ void setup()
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(2), read_me, FALLING); // enabling interrupt at pin 2
-  inital.init_sensors();          // intialise IMU and Barometer
-  inital.init_motors();           // intialise motors and calibrate IMU
 }
 //------------------------------------------------------------------------------------------------------------------
 /*
@@ -67,19 +64,25 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------
 void loop()
 { 
-  MainLoop();            // run main flight controll loop
-             //IF loop is broken out of...
-  read_rc();             // read receiver values          
-  
-  if (ch[2] < 1100)
+  motor.FullStop();  // otherwise set all motor values to 0
+  breakout = 0;
+  read_rc();             // read receiver values 
+     
+  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 & ch[4] < 1100)
   {
-    breakout = 0;
-    delay(1000);        //  if yaw stick is held at the extreme lefmost position
-    MainLoop();         //  restart main flight loop
-  }
-  else
-  {
-    motor.FullStop();  // otherwise set all motor values to 0
+    inital.init_sensors();          // intialise IMU and Barometer
+    inital.init_motors();           // intialise motors and calibrate IMU
+
+    while(breakout != 1)
+    {
+      motor.StartUp();
+      read_rc();
+      
+      if(ch[1] > 1300)
+      { 
+        MainLoop();            // run main flight controll loop        
+      }
+    }
   }
 }
 //-------------------------------------------------------------------------------------------------------------
@@ -118,11 +121,11 @@ int RollSetPoint = 0;
     //Serial.print("\t");
     //Serial.println(*yA+1);
     
-    ThrottleSetPoint =  map(ch[1],1080,1970,1000,1800);            // read in throttle setpoint
+    ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
     {
-        PitchSetPoint = map(ch[3],1008,2008,30,-30);
-        RollSetPoint = map(ch[4],1008,2008,30,-30);   // read in roll pitch and yaw setpoint values from receiver
+        PitchSetPoint = map(ch[4],1000,1900,30,-30);
+        RollSetPoint = map(ch[3],1200,2020,30,-30);   // read in roll pitch and yaw setpoint values from receiver
         //YawSetPoint = map(ch[2],1076,1936,-30,30);    // and map to between 0 and 30 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
@@ -134,7 +137,7 @@ int RollSetPoint = 0;
       
         shutdowntime += (millis()- timer)*10;           
 
-        if( shutdowntime > 2000)                  // if running count exceed 2 seconds break out of main loop
+        if( shutdowntime > 4000)                  // if running count exceed 2 seconds break out of main loop
         {                                         // and reset all setpoints to zero 
           breakout = 1;
         }

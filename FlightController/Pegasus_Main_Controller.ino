@@ -31,9 +31,9 @@ unsigned long timeBetFrames = 0;
 
 long  MP,MR,MY;
 
-int *xA = 0;
-int *yA = 0;
-//int *zA = 0;
+double *xA = 0;
+double *yA = 0;
+
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -68,7 +68,7 @@ void loop()
   breakout = 0;
   read_rc();             // read receiver values 
      
-  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 & ch[4] < 1100)
+  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
   {
     inital.init_sensors();          // intialise IMU and Barometer
     inital.init_motors();           // intialise motors and calibrate IMU
@@ -96,16 +96,14 @@ void loop()
 void MainLoop()
 {
   /*
- * PID VARIABLES
- */
-int a  = 0;
-int b  = 0;
-//int c  = 0;
+   * PID VARIABLES
+   */
+  double a  = 0;
+  double b  = 0;
 
-int ThrottleSetPoint = 0;
-int PitchSetPoint = 0;
-int RollSetPoint = 0;
-//int YawSetPoint = 0;
+  double ThrottleSetPoint = 0;
+  double PitchSetPoint = 0;
+  double RollSetPoint = 0;
 
   while(breakout != 1)
   {
@@ -115,7 +113,6 @@ int RollSetPoint = 0;
    
     xA = readIn.Axis_xyz();
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
-    //zA = readIn.Axis_xyz()+2;
 
     //Serial.print(*xA+3);
     //Serial.print("\t");
@@ -126,30 +123,27 @@ int RollSetPoint = 0;
     {
         PitchSetPoint = map(ch[4],1000,1900,30,-30);
         RollSetPoint = map(ch[3],1200,2020,30,-30);   // read in roll pitch and yaw setpoint values from receiver
-        //YawSetPoint = map(ch[2],1076,1936,-30,30);    // and map to between 0 and 30 degrees 
+                                                      // and map to between 0 and 30 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
     else
     {
         PitchSetPoint = 0;
         RollSetPoint =0;
-        //YawSetPoint =0;
       
         shutdowntime += (millis()- timer)*10;           
 
-        if( shutdowntime > 4000)                  // if running count exceed 2 seconds break out of main loop
+        if( shutdowntime > 4000)                  // if running count exceed 4 seconds break out of main loop
         {                                         // and reset all setpoints to zero 
           breakout = 1;
         }
     }
 
     a = motor.error(PitchSetPoint,*xA+3);
-    b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints
-    //c = motor.error(YawSetPoint,*zA);        // error = setpoint - sensorValue
+    b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints, error = setpoint - sensorValue
     
     MP = motor.pid(a,timeBetFrames);
     MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
-    //MY = motor.pid(c,timeBetFrames);
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
    
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm

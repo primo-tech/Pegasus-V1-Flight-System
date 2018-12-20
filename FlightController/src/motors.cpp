@@ -63,9 +63,9 @@ void Motors::AltitudeControl(int al,double x)
    }
 }
 
-int Motors::error(int a, int b)
+double Motors::error(double a, double b)
 {
-  int c;
+  double c;
   c = a - b;                  // calculate the difference between a and b return as error
   return(c);
 }
@@ -124,7 +124,7 @@ void Motors::FullStop()
   RunMotors(&Motor6,1000);
 }
 
-double Motors::pid(int InputError,unsigned long timeBetFrames)
+double Motors::pid(double InputError,unsigned long timeBetFrames)
 {
   InputErrorTotal += InputError;
   yT += y;

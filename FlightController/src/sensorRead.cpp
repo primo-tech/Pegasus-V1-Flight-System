@@ -26,9 +26,9 @@ double Sensor::Altitude()
   return(h);                    // return altitude value
 }
 
-int *Sensor::Axis_xyz()
+double *Sensor::Axis_xyz()
 {
-  static int Axis[3];        // created a static array to hold output
+  static double Axis[3];        // created a static array to hold output
   
   Vector norm = mpu.readNormalizeGyro();         // read in gyroscope values and accelerometer values
   Vector normAccel = mpu.readNormalizeAccel();   // as 1x3 vectors

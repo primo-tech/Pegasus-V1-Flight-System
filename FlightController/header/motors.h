@@ -21,8 +21,8 @@ class Motors                  // create motor control class
     double p=0,i=0,d=0,cont=0;
     double y = 0,yT = 0, N = 0.2;  
 
-    int error(int a, int b);  // error for feedback calculations
-    double pid(int InputError,unsigned long timeBetFrames);  // PID controller
+    double error(double a, double b);  // error for feedback calculations
+    double pid(double InputError,unsigned long timeBetFrames);  // PID controller
     void RunMotors(Servo* Motor,int Gain);   // transmits commands to motors
     void MotorMix(Servo x, int y, int lower, int upper);  // motor mixing algorithm for roll, pitch and yaw motion
     void FlightControl(int v,int x,int y,int z);   // transmitts mixed values to motors

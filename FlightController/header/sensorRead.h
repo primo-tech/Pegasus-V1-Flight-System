@@ -15,7 +15,7 @@ class Sensor
 {
   public:
     double Altitude();      // calculated the current altitude above sea level
-    int *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
+    double *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
     
   private:
     float timeStep = 0.01;   // time step for consistent cycle time and thus frequency

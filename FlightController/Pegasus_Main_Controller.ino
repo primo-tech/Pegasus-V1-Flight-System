@@ -29,11 +29,17 @@ int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
 
 unsigned long timeBetFrames = 0;
 
-long  MP,MR,MY;
+float MP,MR,MY;
 
-double *xA = 0;
-double *yA = 0;
+float *xA = 0;
+float *yA = 0;
 
+float a  = 0;
+float b  = 0;
+
+float ThrottleSetPoint = 0;
+float PitchSetPoint = 0;
+float RollSetPoint = 0;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -63,13 +69,13 @@ void setup()
  */
 //------------------------------------------------------------------------------------------------------------------
 void loop()
-{ 
+{
   motor.FullStop();  // otherwise set all motor values to 0
   breakout = 0;
   read_rc();             // read receiver values 
      
-  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
-  {
+  //if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
+  //{
     inital.init_sensors();          // intialise IMU and Barometer
     inital.init_motors();           // intialise motors and calibrate IMU
 
@@ -79,11 +85,11 @@ void loop()
       read_rc();
       
       if(ch[1] > 1300)
-      { 
+      {
         MainLoop();            // run main flight controll loop        
       }
     }
-  }
+  //}
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -98,12 +104,12 @@ void MainLoop()
   /*
    * PID VARIABLES
    */
-  double a  = 0;
-  double b  = 0;
+  a  = 0;
+  b  = 0;
 
-  double ThrottleSetPoint = 0;
-  double PitchSetPoint = 0;
-  double RollSetPoint = 0;
+  ThrottleSetPoint = 1500;
+  PitchSetPoint = 0;
+  RollSetPoint = 0;
 
   while(breakout != 1)
   {
@@ -114,15 +120,11 @@ void MainLoop()
     xA = readIn.Axis_xyz();
     yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
 
-    //Serial.print(*xA+3);
-    //Serial.print("\t");
-    //Serial.println(*yA+1);
-    
     ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
     {
         PitchSetPoint = map(ch[4],1000,1900,30,-30);
-        RollSetPoint = map(ch[3],1200,2020,30,-30);   // read in roll pitch and yaw setpoint values from receiver
+        RollSetPoint = map(ch[3],1000,1900,30,-30);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 30 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
@@ -139,17 +141,19 @@ void MainLoop()
         }
     }
 
-    a = motor.error(PitchSetPoint,*xA+3);
-    b = motor.error(RollSetPoint,*yA+1);    // calculated error from setpoints, error = setpoint - sensorValue
+    a = motor.error(PitchSetPoint,*xA);
+    b = motor.error(RollSetPoint,*yA)+2;    // calculated error from setpoints, error = setpoint - sensorValue
     
     MP = motor.pid(a,timeBetFrames);
     MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
-   
+    
+    Serial.println(MR);
+    
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*2000) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*1500) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

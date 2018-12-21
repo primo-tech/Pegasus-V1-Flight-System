@@ -63,9 +63,9 @@ void Motors::AltitudeControl(int al,double x)
    }
 }
 
-double Motors::error(double a, double b)
+float Motors::error(float a, float b)
 {
-  double c;
+  float c;
   c = a - b;                  // calculate the difference between a and b return as error
   return(c);
 }
@@ -87,14 +87,14 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
   RunMotors(&x,y);
 }
 
-void Motors::FlightControl(int v,int x,int y,int z)
+void Motors::FlightControl(float v,float x,float y,float z)
 {
-  int Run1 = v-x+y-z;     // Top Left
-  int Run2 = v-x+y+z;     // Bottom Left
-  int Run3 = v-x-y+z;     // Top Right
-  int Run4 = v-x-y-z;     // Bottom Right
-  int Run5 = v+x-y-z;     // Top Rear
-  int Run6 = v+x-y+z;     // Bottom Rear
+  float Run1 = v-x+y-z;     // Top Left
+  float Run2 = v-x+y+z;     // Bottom Left
+  float Run3 = v-x-y+z;     // Top Right
+  float Run4 = v-x-y-z;     // Bottom Right
+  float Run5 = v+x-y-z;     // Top Rear
+  float Run6 = v+x-y+z;     // Bottom Rear
   
   MotorMix(Motor1,Run1,1300,2000);
   MotorMix(Motor2,Run2,1300,2000);
@@ -124,7 +124,7 @@ void Motors::FullStop()
   RunMotors(&Motor6,1000);
 }
 
-double Motors::pid(double InputError,unsigned long timeBetFrames)
+float Motors::pid(float InputError,unsigned long timeBetFrames)
 {
   InputErrorTotal += InputError;
   yT += y;

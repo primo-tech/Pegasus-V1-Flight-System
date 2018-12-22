@@ -54,11 +54,11 @@ void setup()
 
 void loop()
 {
-  data.X = saturation(map(analogRead(A1),980,150,0,255));
-  data.Y = saturation(map(analogRead(A0),980,200,0,255));
+  data.X = saturation(map(analogRead(A1),1024,0,0,255));
+  data.Y = saturation(map(analogRead(A0),50,700,0,255));
   data.R = 0;
-  data.T = saturation(map(analogRead(A3),950,100,0,255));
-  data.YA = saturation(map(analogRead(A2),980,20,0,255));  
+  data.T = saturation(map(analogRead(A3),100,950,0,255));
+  data.YA = saturation(map(analogRead(A2),20,980,0,255));  
   data.H = 1*100;
   data.H += 0*10;
   data.H += 0*1;

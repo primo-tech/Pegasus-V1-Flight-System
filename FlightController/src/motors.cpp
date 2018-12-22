@@ -124,7 +124,7 @@ void Motors::FullStop()
   RunMotors(&Motor6,1000);
 }
 
-float Motors::pid(float InputError,unsigned long timeBetFrames)
+float Motors::pid(float InputError,float SetPoint,unsigned long timeBetFrames)
 {
   InputErrorTotal += InputError;
   yT += y;
@@ -156,10 +156,11 @@ float Motors::pid(float InputError,unsigned long timeBetFrames)
   }
   
   //Derivative Setpoint Weighting
-  if(InputError < 1 && InputError > -1)
+  if((SetPoint - prevSetPoint) == 0)
   {
     d  = 0;
   }
-
+  prevSetPoint = SetPoint;
+  
   return(cont);
 }

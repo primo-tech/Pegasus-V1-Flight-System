@@ -74,8 +74,8 @@ void loop()
   breakout = 0;
   read_rc();             // read receiver values 
      
-  //if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
-  //{
+  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
+  {
     inital.init_sensors();          // intialise IMU and Barometer
     inital.init_motors();           // intialise motors and calibrate IMU
 
@@ -89,7 +89,7 @@ void loop()
         MainLoop();            // run main flight controll loop        
       }
     }
-  //}
+  }
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -107,7 +107,7 @@ void MainLoop()
   a  = 0;
   b  = 0;
 
-  ThrottleSetPoint = 1500;
+  ThrottleSetPoint = 0;
   PitchSetPoint = 0;
   RollSetPoint = 0;
 
@@ -144,8 +144,9 @@ void MainLoop()
     a = motor.error(PitchSetPoint,*xA);
     b = motor.error(RollSetPoint,*yA)+2;    // calculated error from setpoints, error = setpoint - sensorValue
     
-    MP = motor.pid(a,timeBetFrames);
-    MR = motor.pid(b,timeBetFrames);       // Calculate roll Ptich and yaw PID values
+    MP = motor.pid(a,PitchSetPoint,timeBetFrames);
+    MR = motor.pid(b,RollSetPoint,timeBetFrames);       // Calculate roll Ptich and yaw PID values
+    
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
     
     Serial.println(MR);
@@ -153,7 +154,7 @@ void MainLoop()
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1500) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*10000) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

@@ -1,5 +1,5 @@
 # Flight System
-Reads USB Joystick Data with Python and sends it to an arduino over via serial communication
+Full Flight control system for muliti-rotor aircraft
 echo "# FlightSystem" >> README.md
 git init
 git add README.md

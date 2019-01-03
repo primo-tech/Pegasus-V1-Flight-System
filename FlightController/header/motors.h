@@ -16,9 +16,9 @@ class Motors                  // create motor control class
 {
   public:
     int Setpoint;             // variable for altitute hold setpoint
-    int prevError  = 0;
+    float prevError  = 0;
     float prevSetPoint = 0;
-    int InputErrorTotal = 0;
+    float InputErrorTotal = 0;
     float p=0,i=0,d=0,cont=0;
     float y = 0,yT = 0, N = 0.15;  
 
@@ -33,7 +33,7 @@ class Motors                  // create motor control class
 
    private:
                         // PID variables and gains
-                                  float Kp = 5,Ki = 0.4,Kd = 4;                   
+                                  float Kp = 8,Ki = 0.01,Kd = 10;                   
 };
 
 #endif _MOTORS_

@@ -1,4 +1,4 @@
-# Flight System
+# Pegasus Flight Contol System
 Full Flight control system for muliti-rotor aircraft
 echo "# FlightSystem" >> README.md
 git init

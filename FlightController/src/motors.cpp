@@ -93,8 +93,8 @@ void Motors::FlightControl(float v,float x,float y,float z)
   float Run2 = v-x+y+z;     // Bottom Left
   float Run3 = v-x-y+z;     // Top Right
   float Run4 = v-x-y-z;     // Bottom Right
-  float Run5 = v+x-y-z;     // Top Rear
-  float Run6 = v+x-y+z;     // Bottom Rear
+  float Run5 = v+x-y/2-z;     // Top Rear
+  float Run6 = v+x-y/2+z;     // Bottom Rear
   
   MotorMix(Motor1,Run1,1300,2000);
   MotorMix(Motor2,Run2,1300,2000);

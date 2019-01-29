@@ -137,6 +137,8 @@ void MainLoop()
 
         if( shutdowntime > 4000)                  // if running count exceed 4 seconds break out of main loop
         {                                         // and reset all setpoints to zero 
+          digitalWrite(12,0);
+          digitalWrite(13,0);
           breakout = 1;
         }
     }

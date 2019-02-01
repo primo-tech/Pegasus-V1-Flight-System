@@ -73,9 +73,11 @@ void loop()
   motor.FullStop();  // otherwise set all motor values to 0
   breakout = 0;
   read_rc();             // read receiver values 
-     
+  digitalWrite(4,1);   
+  
   if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
   {
+    digitalWrite(4,0);
     inital.init_sensors();          // intialise IMU and Barometer
     inital.init_motors();           // intialise motors and calibrate IMU
 
@@ -84,7 +86,7 @@ void loop()
       motor.StartUp();
       read_rc();
       
-      if(ch[1] > 1300)
+      if(ch[1] > 1200)
       {
         MainLoop();            // run main flight controll loop        
       }

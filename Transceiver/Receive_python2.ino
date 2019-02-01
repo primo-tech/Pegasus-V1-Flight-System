@@ -38,7 +38,7 @@ MyData data;
 
 void resetData() 
 {
-  data.T = 128;
+  data.T = 0;
   data.X = 128;
   data.Y = 128;
   data.YA = 128;

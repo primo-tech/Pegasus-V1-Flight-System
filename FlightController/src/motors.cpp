@@ -93,25 +93,25 @@ void Motors::FlightControl(float v,float x,float y,float z)
   float Run2 = v-x+y+z;     // Bottom Left
   float Run3 = v-x-y+z;     // Top Right
   float Run4 = v-x-y-z;     // Bottom Right
-  float Run5 = v+x-y/2-z;     // Top Rear
-  float Run6 = v+x-y/2+z;     // Bottom Rear
+  float Run5 = v+x-(y*0.5)-z;     // Top Rear
+  float Run6 = v+x-(y*0.5)+z;     // Bottom Rear
   
-  MotorMix(Motor1,Run1,1200,2000);
-  MotorMix(Motor2,Run2,1200,2000);
-  MotorMix(Motor3,Run3,1200,2000);
-  MotorMix(Motor4,Run4,1200,2000);
-  MotorMix(Motor5,Run5,1050,2000);
-  MotorMix(Motor6,Run6,1050,2000);
+  MotorMix(Motor1,Run1,1300,2000);
+  MotorMix(Motor2,Run2,1300,2000);
+  MotorMix(Motor3,Run3,1300,2000);
+  MotorMix(Motor4,Run4,1300,2000);
+  MotorMix(Motor5,Run5,1100,2000);
+  MotorMix(Motor6,Run6,1100,2000);
 }
 
 void Motors::StartUp()
 {
-  RunMotors(&Motor1,1100);
-  RunMotors(&Motor2,1100);
-  RunMotors(&Motor3,1100);
-  RunMotors(&Motor4,1100);
-  RunMotors(&Motor5,1100);
-  RunMotors(&Motor6,1100);
+  RunMotors(&Motor1,1200);
+  RunMotors(&Motor2,1200);
+  RunMotors(&Motor3,1200);
+  RunMotors(&Motor4,1200);
+  RunMotors(&Motor5,1200);
+  RunMotors(&Motor6,1200);
 }
 
 void Motors::FullStop()
@@ -138,17 +138,17 @@ float Motors::pid(float InputError,float SetPoint,unsigned long timeBetFrames,fl
   prevError = InputError;
   
   // integral anti-windup
-  if(cont > 250 )
+  if(cont > 200 )
   {
-    cont = 250;
+    cont = 200;
     if (InputError > 0)
     {
       InputErrorTotal = 0;
     }
   }
-  else if(cont < -250 )
+  else if(cont < -200 )
   {
-    cont = -250;
+    cont = -200;
     if (InputError < 0)
     {
       InputErrorTotal = 0;

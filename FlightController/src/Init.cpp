@@ -20,12 +20,6 @@ void Initialise::init_sensors()
     delay(1000);
   }
 
-  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
-  {
-    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
-    delay(500);
-  }
-  
   switch(bme.chipModel())
   {
      case BME280::ChipModel_BME280:
@@ -37,6 +31,13 @@ void Initialise::init_sensors()
      default:
        Serial.println("Found UNKNOWN sensor! Error!");
   }
+  
+  while(!mpu.begin(MPU6050_SCALE_2000DPS, MPU6050_RANGE_2G))
+  {
+    Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
+    delay(500);
+  }
+  
 }
 
 void Initialise::init_motors()

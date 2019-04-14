@@ -146,17 +146,18 @@ void MainLoop()
     }
 
     a = motor.error(PitchSetPoint,*xA);
-    b = motor.error(RollSetPoint,*yA)+0.97;    // calculated error from setpoints, error = setpoint - sensorValue
+    b = motor.error(RollSetPoint,(*yA)+0.11)+0.97;    // calculated error from setpoints, error = setpoint - sensorValue
     
     MP = motor.pid(a,PitchSetPoint,timeBetFrames,motor.PKp,motor.PKi,motor.PKd);
-    MR = motor.pid(b,RollSetPoint,timeBetFrames,motor.RKp,motor.RKi,motor.RKd);       // Calculate roll Ptich and yaw PID values
+    MR = motor.pid(b,RollSetPoint,timeBetFrames,motor.RKp,motor.RKi,motor.RKd)-2;       // Calculate roll Ptich and yaw PID values
     
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
-    
+
+    Serial.println(MR);
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*1200) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

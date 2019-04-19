@@ -7,7 +7,7 @@
 #include "init.h"
 #include "motors.h"
 #include "sensorRead.h"
-
+#include <PID_v1.h>
 //---------------------------------------------------------------------------------------------------------------
 /*
  *                                    VARIABLE/CONSTANT DEFINITIONS
@@ -29,17 +29,14 @@ int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
 
 unsigned long timeBetFrames = 0;
 
-float MP,MR,MY;
+double MP,MR,MY;
 
-float *xA = 0;
-float *yA = 0;
-
-float a  = 0;
-float b  = 0;
-
-float ThrottleSetPoint = 0;
-float PitchSetPoint = 0;
-float RollSetPoint = 0;
+double *xA;
+double *yA;
+double Rinput,Pinput;
+double ThrottleSetPoint;
+double PitchSetPoint;
+double RollSetPoint;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -48,6 +45,8 @@ float RollSetPoint = 0;
 Motors motor;                   // Instantiate motor control class
 Initialise inital;              // Instantiate initialisation class
 Sensor readIn;                  // Instantiate Sensor class
+PID PIDPitch(&Pinput, &MP,&PitchSetPoint,8.75,0.2,10, DIRECT);
+PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -58,6 +57,12 @@ void setup()
   Serial.begin(9600);
   Serial.println("Initialize BME280");
   Serial.println("Initialize MPU6050");
+  
+  PIDRoll.SetOutputLimits(-200, 200);
+  PIDPitch.SetOutputLimits(-200, 200);
+  
+  PIDRoll.SetMode(AUTOMATIC);
+  PIDPitch.SetMode(AUTOMATIC);
   
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
@@ -106,9 +111,6 @@ void MainLoop()
   /*
    * PID VARIABLES
    */
-  a  = 0;
-  b  = 0;
-
   ThrottleSetPoint = 0;
   PitchSetPoint = 0;
   RollSetPoint = 0;
@@ -119,9 +121,12 @@ void MainLoop()
   
     read_rc();                         // begin decoding PPM values
    
-    xA = readIn.Axis_xyz();
-    yA = readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
-
+    xA = (double *)readIn.Axis_xyz();
+    yA = (double *)readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
+    
+    Rinput = *yA;
+    Pinput = *xA -1.5;
+    
     ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
     if(ThrottleSetPoint > 1050)
     {
@@ -133,7 +138,7 @@ void MainLoop()
     else
     {
         PitchSetPoint = 0;
-        RollSetPoint =0;
+        RollSetPoint = 0;
       
         shutdowntime += (millis()- timer)*10;           
 
@@ -145,19 +150,15 @@ void MainLoop()
         }
     }
 
-    a = motor.error(PitchSetPoint,*xA);
-    b = motor.error(RollSetPoint,(*yA)+0.11)+0.97;    // calculated error from setpoints, error = setpoint - sensorValue
-    
-    MP = motor.pid(a,PitchSetPoint,timeBetFrames,motor.PKp,motor.PKi,motor.PKd);
-    MR = motor.pid(b,RollSetPoint,timeBetFrames,motor.RKp,motor.RKi,motor.RKd)-2;       // Calculate roll Ptich and yaw PID values
+    PIDPitch.Compute();
+    PIDRoll.Compute();
     
     MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
-
-    Serial.println(MR);
+ 
     motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1200) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
   }
 }                    
 /*

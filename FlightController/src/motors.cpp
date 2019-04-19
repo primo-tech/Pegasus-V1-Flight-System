@@ -87,14 +87,14 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
   RunMotors(&x,y);
 }
 
-void Motors::FlightControl(float v,float x,float y,float z)
+void Motors::FlightControl(double v,double x,double y,double z)
 {
-  float Run1 = v-x+y-z;     // Top Left
-  float Run2 = v-x+y+z;     // Bottom Left
-  float Run3 = v-x-y+z;     // Top Right
-  float Run4 = v-x-y-z;     // Bottom Right
-  float Run5 = v+x-(y*0.5)-z;     // Top Rear
-  float Run6 = v+x-(y*0.5)+z;     // Bottom Rear
+  double Run1 = v-x+y-z;     // Top Left
+  double Run2 = v-x+y+z;     // Bottom Left
+  double Run3 = v-x-y+z;     // Top Right
+  double Run4 = v-x-y-z;     // Bottom Right
+  double Run5 = v+x-(y*0.5)-z;     // Top Rear
+  double Run6 = v+x-(y*0.5)+z;     // Bottom Rear
   
   MotorMix(Motor1,Run1,1300,2000);
   MotorMix(Motor2,Run2,1300,2000);
@@ -124,7 +124,7 @@ void Motors::FullStop()
   RunMotors(&Motor6,1000);
 }
 
-float Motors::pid(float InputError,float SetPoint,unsigned long timeBetFrames,float Kp, float Ki, float Kd)
+float Motors::pid(double InputError,double SetPoint,unsigned long timeBetFrames,float Kp, float Ki, float Kd)
 {
   InputErrorTotal += InputError;
   yT += y;

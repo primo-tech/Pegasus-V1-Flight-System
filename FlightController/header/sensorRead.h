@@ -16,7 +16,6 @@ class Sensor
   public:
     double Altitude();      // calculated the current altitude above sea level
     float *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
-    
   private:
     float timeStep = 0.01;   // time step for consistent cycle time and thus frequency
     /*
@@ -27,14 +26,12 @@ class Sensor
     double M = 0.0289644;        
     double Pb = 101325;
     double num=0,dnum=0,h=0,hb = 0;
-
     /*
      * IMU VALUES
     */
     float gpitch = 0, groll = 0, gyaw = 0;
     float angle_pitch_output, angle_roll_output;
-    boolean set_gyro_angles;
-    
+    boolean set_gyro_angles; 
 };
 
 #endif _SENSORREAD_

@@ -63,13 +63,6 @@ void Motors::AltitudeControl(int al,double x)
    }
 }
 
-float Motors::error(float a, float b)
-{
-  float c;
-  c = a - b;                  // calculate the difference between a and b return as error
-  return(c);
-}
-
 void Motors::MotorMix(Servo x, int y, int lower, int upper)
 {
   if (y > upper)
@@ -122,45 +115,4 @@ void Motors::FullStop()
   RunMotors(&Motor4,1000);
   RunMotors(&Motor5,1000);
   RunMotors(&Motor6,1000);
-}
-
-float Motors::pid(double InputError,double SetPoint,unsigned long timeBetFrames,float Kp, float Ki, float Kd)
-{
-  InputErrorTotal += InputError;
-  yT += y;
-  
-  p = InputError*Kp;
-  i = InputErrorTotal*Ki*timeBetFrames;
-  //d = (Kd*(InputError-prevError))/timeBetFrames;
-  y = N*(InputError - (yT*timeBetFrames));   // Derivative Prefilter
-  d = y*Kd;
-  cont = p + i + d;
-  prevError = InputError;
-  
-  // integral anti-windup
-  if(cont > 200 )
-  {
-    cont = 200;
-    if (InputError > 0)
-    {
-      InputErrorTotal = 0;
-    }
-  }
-  else if(cont < -200 )
-  {
-    cont = -200;
-    if (InputError < 0)
-    {
-      InputErrorTotal = 0;
-    }
-  }
-  
-  //Derivative Setpoint Weighting
-  if((SetPoint - prevSetPoint) == 0)
-  {
-    d  = 0;
-  }
-  prevSetPoint = SetPoint;
-  
-  return(cont);
 }

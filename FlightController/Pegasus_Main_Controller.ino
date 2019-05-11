@@ -3,7 +3,6 @@
  *                                            CLASS HEADER FILES
  */
 //--------------------------------------------------------------------------------------------------------------------
-
 #include "init.h"
 #include "motors.h"
 #include "sensorRead.h"
@@ -18,23 +17,28 @@
  */
 long loop_timer;
 unsigned long timer = 0;
+unsigned long timeBetFrames = 0;
 unsigned long shutdowntime;
 float timeStep = 0.01;
 bool breakout = 0;
 /*
- * RECEIVER VALUES
+ * RECEIVER VARIABLES
  */
 unsigned long int aa,bb,cc;
 int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
+/*
+ *  CONTROL VARIABLES
+ */
+double MA,MP,MR,MY;
 
-unsigned long timeBetFrames = 0;
-
-double MP,MR,MY;
-
+double alt;
 double *xA;
 double *yA;
-double Rinput,Pinput;
+
+double Ainput,Rinput,Pinput;
+
 double ThrottleSetPoint;
+double AltitudeSetPoint;
 double PitchSetPoint;
 double RollSetPoint;
 //--------------------------------------------------------------------------------------------------------------------
@@ -45,8 +49,10 @@ double RollSetPoint;
 Motors motor;                   // Instantiate motor control class
 Initialise inital;              // Instantiate initialisation class
 Sensor readIn;                  // Instantiate Sensor class
-PID PIDPitch(&Pinput, &MP,&PitchSetPoint,8.75,0.2,10, DIRECT);
-PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);
+
+PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,2,0.05,0, DIRECT);  //Altitude PID Controller
+PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);     //Pitch PID Controller
+PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);      //Roll PID Controller
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -58,11 +64,13 @@ void setup()
   Serial.println("Initialize BME280");
   Serial.println("Initialize MPU6050");
   
-  PIDRoll.SetOutputLimits(-200, 200);
+  PIDAlt.SetOutputLimits(1000, 1800);
   PIDPitch.SetOutputLimits(-200, 200);
-  
-  PIDRoll.SetMode(AUTOMATIC);
+  PIDRoll.SetOutputLimits(-200, 200);
+
+  PIDAlt.SetMode(AUTOMATIC);
   PIDPitch.SetMode(AUTOMATIC);
+  PIDRoll.SetMode(AUTOMATIC);
   
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
@@ -112,6 +120,7 @@ void MainLoop()
    * PID VARIABLES
    */
   ThrottleSetPoint = 0;
+  AltitudeSetPoint = 0;
   PitchSetPoint = 0;
   RollSetPoint = 0;
 
@@ -120,16 +129,20 @@ void MainLoop()
     timer = millis();
   
     read_rc();                         // begin decoding PPM values
-   
+    
+    Ainput = readIn.Altitude();       // read in current altitude value
+    
     xA = (double *)readIn.Axis_xyz();
-    yA = (double *)readIn.Axis_xyz()+1;          // read in roll pitch and yaw IMU values
+    yA = (double *)readIn.Axis_xyz()+1;          // read in roll and pitch IMU values
     
     Rinput = *yA;
-    Pinput = *xA -1.5;
+    Pinput = *xA -1.5;                          // set the roll and pitch value to PID inputs
     
     ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
+    
     if(ThrottleSetPoint > 1050)
     {
+        AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
         PitchSetPoint = map(ch[4],1000,1900,10,-10);
         RollSetPoint = map(ch[3],1000,1900,10,-10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 
@@ -137,28 +150,30 @@ void MainLoop()
     }
     else
     {
+        AltitudeSetPoint = 0t;
         PitchSetPoint = 0;
         RollSetPoint = 0;
-      
+       
         shutdowntime += (millis()- timer)*10;           
-
-        if( shutdowntime > 4000)                  // if running count exceed 4 seconds break out of main loop
-        {                                         // and reset all setpoints to zero 
+        
+        if( shutdowntime > 4000)                  // if running count exceeds 4000 counts break out of main loop
+        {                                         // and reset all setpoints to zero
           digitalWrite(12,0);
           digitalWrite(13,0);
           breakout = 1;
         }
     }
 
-    PIDPitch.Compute();
+    PIDAlt.Compute();
+    PIDPitch.Compute();                        // calculate PID values
     PIDRoll.Compute();
     
-    MY = map(ch[2],1070,1930,-200,200);    // non feedback rate control for yaw
+    MY = map(ch[2],1070,1930,-200,200);       // non feedback rate control for yaw
  
-    motor.FlightControl(ThrottleSetPoint,MP,MR,MY);  // Send PID values to Motor Mixing algorithm
+    motor.FlightControl(MA,MP,MR,MY);         // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames); //Run at 100Hz
+    delay((timeStep*1000) - timeBetFrames);   //Run Loop at 100Hz
   }
 }                    
 /*

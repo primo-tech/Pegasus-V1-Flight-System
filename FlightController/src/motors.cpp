@@ -23,44 +23,46 @@ void Motors::RunMotors(Servo* Motor,int Gain)
     Motor->writeMicroseconds(x);       // write gain to motors
 }
 
-void Motors::AltitudeControl(int al,double x)
+double Motors::AltitudeControl(double input,double sensorVal)
 {
-  double b = x;
-                         // checks commanded value, compare that with actual value and returns compensated value
-   if( al > 1750)
+  double b = sensorVal;
+  double Setpoint;             // variable for altitute hold setpoint
+                         // checks commanded valuue, compare that with actual value and returns compensated value
+   if( input > 1750)
    {
      b = b + 1.5;
      Setpoint = b;
    }
-   else if( al > 1650 &&  al < 1750)
+   else if( input > 1650 &&  input < 1750)
    {
      b = b + 1;
      Setpoint = b;
    }
-   else if( al > 1550 &&  al < 1650)
+   else if( input > 1550 &&  input < 1650)
    {
      b = b + 0.5;
      Setpoint = b;
    }
-   else if( al < 1450 && al > 1350)
+   else if( input < 1450 && input > 1350)
    {
      b = b - 0.5;
       Setpoint = b;
    }
-   else if( al < 1350 && al > 1250)
+   else if( input < 1350 && input > 1250)
    {
      b = b - 1;
      Setpoint = b;
    }
-   else if( al < 1250)
+   else if( input < 1250)
    {
      b = b - 1.5;
      Setpoint = b;
    }
-   else if( al > 1450 && al < 1550)
+   else if( input > 1450 && input < 1550)
    {
      Setpoint = b;
    }
+   return(Setpoint);
 }
 
 void Motors::MotorMix(Servo x, int y, int lower, int upper)

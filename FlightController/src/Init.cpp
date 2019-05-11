@@ -44,12 +44,12 @@ void Initialise::init_motors()
 {
   Motors motor;
   mpu.calibrateGyro();
-  mpu.setThreshold(10);              //calibrate the gyroscope
+  mpu.setThreshold(10);                   //calibrate the gyroscope
   
   Motor1.attach(M1);
   Motor2.attach(M2);
   Motor3.attach(M3);
-  Motor4.attach(M4);                 // intialise the motors to pins
+  Motor4.attach(M4);                      // intialise the motors to pins
   Motor5.attach(M5);
   Motor6.attach(M6);
   

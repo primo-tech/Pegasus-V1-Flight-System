@@ -150,7 +150,7 @@ void MainLoop()
     }
     else
     {
-        AltitudeSetPoint = 0t;
+        AltitudeSetPoint = 0;
         PitchSetPoint = 0;
         RollSetPoint = 0;
        

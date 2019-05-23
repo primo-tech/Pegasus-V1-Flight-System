@@ -23,9 +23,9 @@ void Motors::RunMotors(Servo* Motor,int Gain)
     Motor->writeMicroseconds(x);       // write gain to motors
 }
 
-double Motors::AltitudeControl(double input,double sensorVal)
+double Motors::AltitudeControl(double input,double sensorVal,double initial)
 {
-  double b = sensorVal;
+  double b = sensorVal - initial; // start from zero;
   double Setpoint;             // variable for altitute hold setpoint
                          // checks commanded valuue, compare that with actual value and returns compensated value
    if( input > 1750)

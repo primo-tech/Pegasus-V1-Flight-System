@@ -1,5 +1,6 @@
 # Pegasus Flight Contol System
-Full Flight control system for muliti-rotor aircraft
+Full Flight Control System For Y6 Mulitirotor Aircraft.
+consisting of Onboard RF Communication System, PCB Schemetics for Both The RC and FC.
 echo "# FlightSystem" >> README.md
 git init
 git add README.md

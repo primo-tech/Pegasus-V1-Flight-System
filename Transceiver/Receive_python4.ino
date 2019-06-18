@@ -44,7 +44,10 @@ void resetData()
 void setup()
 {
   Serial.begin(9600);
+  
   pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+  
   radio.begin();
   printf_begin();
   radio.setAutoAck(false);
@@ -61,6 +64,34 @@ bool State = 0;
 
 void loop()
 {
+  if (State == 0)
+  {
+    data.YA = saturation(map(analogRead(A2),20,980,0,255));  
+    
+    data.T = saturation(map(analogRead(A3),100,950,0,255));
+    
+    data.X = saturation(map(analogRead(A1),100,900,0,255));
+    
+    data.Y = saturation(map(analogRead(A0),900,100,0,255));
+    
+    data.H = 1*100;
+    data.H += 0*10;
+    data.H += 0*1;
+
+    data.R = 0;
+    
+    radio.write(&data, sizeof(MyData));
+    Serial.println(data.T);
+    if (data.T < 50 && data.Y > 200)
+    {
+      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
+      delay(1000);                       // wait for a second
+      digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
+      delay(1000);                       // wait for a second
+      State = 1;
+    }
+  }
+  
   if(State == 1)
   {
     if(Serial.available())
@@ -114,33 +145,9 @@ void loop()
         }
       }
     }
-  }
-
-  if (State == 0)
-  {
-    data.YA = saturation(map(analogRead(A2),20,980,0,255));  
-    
-    data.T = saturation(map(analogRead(A3),100,950,0,255));
-    
-    data.X = saturation(map(analogRead(A1),100,900,0,255));
-    
-    data.Y = saturation(map(analogRead(A0),900,100,0,255));
-    
-    data.H = 1*100;
-    data.H += 0*10;
-    data.H += 0*1;
-
-    data.R = 0;
-    
-    radio.write(&data, sizeof(MyData));
-
-    if (data.T < 50 && data.Y > 200)
+    else
     {
-      digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
-      delay(1000);                       // wait for a second
-      digitalWrite(LED_BUILTIN, LOW);    // turn the LED off by making the voltage LOW
-      delay(1000);                       // wait for a second
-      State = 1;
+      State = 0;
     }
   }
 }

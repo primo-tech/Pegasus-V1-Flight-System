@@ -82,7 +82,7 @@ void loop()
     
     radio.write(&data, sizeof(MyData));
     Serial.println(data.T);
-    if (data.T < 50 && data.Y > 200)
+    if (data.T < 25 && data.Y > 225)
     {
       digitalWrite(LED_BUILTIN, HIGH);   // turn the LED on (HIGH is the voltage level)
       delay(1000);                       // wait for a second

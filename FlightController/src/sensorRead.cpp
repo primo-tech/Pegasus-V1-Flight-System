@@ -7,8 +7,24 @@
 extern MPU6050 mpu;        // extern allows other files to use these values
 extern BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
-                  
-double Sensor::Altitude()
+extern HMC5883L compass;  
+
+Sensors::Sensors()
+{
+  compass = HMC5883L(); // Construct a new HMC5883 compass.
+  error = compass.SetScale(1.3); // Set the scale of the compass.
+   if(error != 0) // If there is an error, print it out.
+   {
+    Serial.println(compass.GetErrorText(error));
+   }
+  error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
+  if(error != 0) // If there is an error, print it out.
+  {
+    Serial.println(compass.GetErrorText(error));   
+  }        
+}
+
+double Sensors::Altitude()
 {
   float temp(NAN), hum(NAN), pres(NAN);
 
@@ -26,7 +42,7 @@ double Sensor::Altitude()
   return(h);                    // return altitude value
 }
 
-float *Sensor::Axis_xyz()
+float *Sensors::Axis_xyz()
 {
   static float Axis[3];        // created a static array to hold output
   
@@ -63,3 +79,31 @@ float *Sensor::Axis_xyz()
   return(Axis);                        // return array
 }
 
+float Sensor::Axis_z()
+{
+  MagnetometerScaled scaled = compass.ReadScaledAxis(); // Retrived the scaled values from the compass (scaled to the configured scale).
+  
+  heading = atan2(scaled.YAxis, scaled.XAxis); // Calculate heading when the magnetometer is level, then correct for signs of axis.
+  
+  // Once you have your heading, add your 'Declination Angle', which is the 'Error' of the magnetic field in your location.
+  // Find yours here: http://www.magnetic-declination.com/
+  // If you cannot find your Declination, comment out these two lines, your compass will be slightly off.
+  heading += declinationAngle;
+  
+  if(heading < 0)   // Correct for when signs are reversed.
+  {
+    heading += 2*PI;
+  }
+  
+  if(heading > 2*PI) // Check for wrap due to addition of declination.
+  {
+    heading -= 2*PI;
+  }
+  
+  headingDegrees = heading * 180/M_PI;  // Convert radians to degrees
+  
+  // Normally we would delay the application by 66ms to allow the loop
+  // to run at 15Hz (default bandwidth for the HMC5883L). delay(66);
+  
+   return(headingDegrees);
+}

@@ -49,11 +49,11 @@ double RollSetPoint;
 //--------------------------------------------------------------------------------------------------------------------
 Motors motor;                   // Instantiate motor control class
 Initialise inital;              // Instantiate initialisation class
-Sensor readIn;                  // Instantiate Sensor class
+Sensors readIn;                  // Instantiate Sensor class
 
 PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,2,0.05,0, DIRECT);  //Altitude PID Controller
-PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);     //Pitch PID Controller
-PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);      //Roll PID Controller
+PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);  //Pitch PID Controller
+PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);   //Roll PID Controller
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -84,9 +84,9 @@ void setup()
 //------------------------------------------------------------------------------------------------------------------
 void loop()
 {
-  motor.FullStop();  // otherwise set all motor values to 0
+  motor.FullStop();  // set all motor values to 0
   breakout = 0;
-  read_rc();             // read receiver values 
+  read_rc();         // read receiver values 
   digitalWrite(4,1);   
   
   if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
@@ -102,7 +102,7 @@ void loop()
       
       if(ch[1] > 1200)
       {
-        MainLoop();            // run main flight controll loop        
+        MainLoop();                 // run main flight controll loop        
       }
     }
   }
@@ -138,13 +138,13 @@ void MainLoop()
   
     read_rc();                         // begin decoding PPM values
     
-    Ainput = readIn.Altitude();       // read in current altitude value
+    Ainput = readIn.Altitude();        // read in current altitude value
     
     xA = (double *)readIn.Axis_xyz();
     yA = (double *)readIn.Axis_xyz()+1;          // read in roll and pitch IMU values
     
     Rinput = *yA;
-    Pinput = *xA -1.5;                          // set the roll and pitch value to PID inputs
+    Pinput = *xA -1.5;                           // set the roll and pitch value to PID inputs
     
     ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
     
@@ -164,8 +164,8 @@ void MainLoop()
        
         shutdowntime += (millis()- timer)*10;           
         
-        if( shutdowntime > 4000)                  // if running count exceeds 4000 counts break out of main loop
-        {                                         // and reset all setpoints to zero
+        if( shutdowntime > 4000)                   // if running count exceeds 4000 counts break out of main loop
+        {                                          // and reset all setpoints to zero
           digitalWrite(12,0);
           digitalWrite(13,0);
           breakout = 1;
@@ -176,12 +176,12 @@ void MainLoop()
     PIDPitch.Compute();                        // calculate PID values
     PIDRoll.Compute();
     
-    MY = map(ch[2],1070,1930,-200,200);       // non feedback rate control for yaw
+    MY = map(ch[2],1070,1930,-200,200);        // non feedback rate control for yaw
  
-    motor.FlightControl(MA,MP,MR,MY);         // Send PID values to Motor Mixing algorithm
+    motor.FlightControl(MA,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames);   //Run Loop at 100Hz
+    delay((timeStep*1000) - timeBetFrames);    //Run Loop at 100Hz
   }
 }                    
 /*
@@ -202,28 +202,28 @@ void read_me()
 
   if(ii==15)
   {
-    for(j=0;j<15;j++) 
+    for(j=0;j<15;j++)   //copy store all values from temporary array another array after 15 reading
     {
       ch1[j]=x[j];
     }
     ii=0;
   }
-}//copy store all values from temporary array another array after 15 reading 
+}
 
 void read_rc()
 {
   int i,j,k=0;
   
-  for(k=14;k>-1;k--)
+  for(k=14;k>-1;k--)   //detecting separation space 10000us in that another array
   {
     if(ch1[k]>10000)
     {
       j=k;
     }
-  } //detecting separation space 10000us in that another array
+  } 
                     
   for(i=1;i<=6;i++)
   {
-    ch[i]=(ch1[i+j]);
+    ch[i]=(ch1[i+j]);  //assign 6 channel values after separation space
   }
-}     //assign 6 channel values after separation space
+}

@@ -8,14 +8,12 @@
 #endif
 
 #include <Wire.h>
-#include <BME280I2C.h>         // import wire library for i2c
+#include <BME280I2C.h>         // Import wire library for i2c
 #include <MPU6050.h>           // BME library for barometer, MPU library for IMU
+#include <HMC5883L.h>          // Reference the HMC5883L Compass Library
 
-class Sensor
+class Sensors
 {
-  public:
-    double Altitude();      // calculated the current altitude above sea level
-    float *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
   private:
     float timeStep = 0.01;   // time step for consistent cycle time and thus frequency
     /*
@@ -32,7 +30,19 @@ class Sensor
     float gpitch = 0, groll = 0, gyaw = 0;
     float angle_pitch_output, angle_roll_output;
     boolean set_gyro_angles; 
+    /*
+     * COMPASS VALUES
+    */
+    int error = 0;
+    float declinationAngle = 0.0457;
+    float heading;
+    float headingDegrees;
+    
+  public:
+    Sensors();
+    double Altitude();        // calculated the current altitude above sea level
+    float *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
+    float Axis_z();           // calculate the current heading  yaw(z)
 };
 
-#endif _SENSORREAD_
-
+#endif

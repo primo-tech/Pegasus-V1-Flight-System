@@ -13,7 +13,7 @@ BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
 HMC5883L compass;
              
-void Initialise::init_sensors()
+void Initialise::initSensors()
 {
   Serial.println("");
   while(!bme.begin())
@@ -42,7 +42,7 @@ void Initialise::init_sensors()
   
 }
 
-void Initialise::init_motors()
+void Initialise::initMotors()
 {
   Motors motor;
   mpu.calibrateGyro();

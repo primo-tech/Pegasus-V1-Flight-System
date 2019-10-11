@@ -23,8 +23,8 @@ class Initialise              // create initialisation class
     int M5 = 10;    // Top Rear
     int M6 = 11;    // Bottom Rear
 
-    void init_sensors();          // initialise the sensors
-    void init_motors();           // initialise the motors
+    void initSensors();          // initialise the sensors
+    void initMotors();           // initialise the motors
 };
 
 #endif

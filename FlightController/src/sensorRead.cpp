@@ -3,6 +3,7 @@
 #include <Wire.h>
 #include <BME280I2C.h>
 #include <MPU6050.h>
+#include <HMC5883L.h>
 
 extern MPU6050 mpu;        // extern allows other files to use these values
 extern BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
@@ -11,7 +12,7 @@ extern HMC5883L compass;
 
 Sensors::Sensors()
 {
-  compass = HMC5883L(); // Construct a new HMC5883 compass.
+  /*compass = HMC5883L(); // Construct a new HMC5883 compass.
   error = compass.SetScale(1.3); // Set the scale of the compass.
    if(error != 0) // If there is an error, print it out.
    {
@@ -21,7 +22,7 @@ Sensors::Sensors()
   if(error != 0) // If there is an error, print it out.
   {
     Serial.println(compass.GetErrorText(error));   
-  }        
+  } */      
 }
 
 double Sensors::Altitude()
@@ -42,7 +43,7 @@ double Sensors::Altitude()
   return(h);                    // return altitude value
 }
 
-float *Sensors::Axis_xyz()
+float *Sensors::IMU()
 {
   static float Axis[3];        // created a static array to hold output
   
@@ -79,9 +80,9 @@ float *Sensors::Axis_xyz()
   return(Axis);                        // return array
 }
 
-float Sensor::Axis_z()
+float Sensors::MAG()
 {
-  MagnetometerScaled scaled = compass.ReadScaledAxis(); // Retrived the scaled values from the compass (scaled to the configured scale).
+ /* MagnetometerScaled scaled = compass.ReadScaledAxis(); // Retrived the scaled values from the compass (scaled to the configured scale).
   
   heading = atan2(scaled.YAxis, scaled.XAxis); // Calculate heading when the magnetometer is level, then correct for signs of axis.
   
@@ -106,4 +107,5 @@ float Sensor::Axis_z()
   // to run at 15Hz (default bandwidth for the HMC5883L). delay(66);
   
    return(headingDegrees);
+   */
 }

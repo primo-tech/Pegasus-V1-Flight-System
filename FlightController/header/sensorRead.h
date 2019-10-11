@@ -41,8 +41,8 @@ class Sensors
   public:
     Sensors();
     double Altitude();        // calculated the current altitude above sea level
-    float *Axis_xyz();        // calculate the current pose roll, pitch, yaw(x,y,z)
-    float Axis_z();           // calculate the current heading  yaw(z)
+    float *IMU();        // calculate the current pose roll, pitch, yaw(x,y,z)
+    float MAG();           // calculate the current heading  yaw(z)
 };
 
 #endif

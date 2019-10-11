@@ -5,12 +5,14 @@
 #include <Servo.h>
 #include <BME280I2C.h>
 #include <MPU6050.h>
+#include <HMC5883L.h>
 
 Servo Motor1,Motor2,Motor3,Motor4,Motor5,Motor6;  // create instances of the servo class for motor control
 MPU6050 mpu;
 BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
-                  
+HMC5883L compass;
+             
 void Initialise::init_sensors()
 {
   Serial.println("");

@@ -23,44 +23,37 @@ void Motors::RunMotors(Servo* Motor,int Gain)
     Motor->writeMicroseconds(x);       // write gain to motors
 }
 
-double Motors::AltitudeControl(double input,double sensorVal,double initial)
+double Motors::AltitudeControl(double input,double sensorVal)
 {
-  double b = sensorVal - initial; // start from zero;
-  double Setpoint;             // variable for altitute hold setpoint
-                         // checks commanded valuue, compare that with actual value and returns compensated value
+   Setpoint = sensorVal; // start from zero;
+   
    if( input > 1750)
    {
-     b = b + 1.5;
-     Setpoint = b;
+     Setpoint += 1.5;
    }
    else if( input > 1650 &&  input < 1750)
    {
-     b = b + 1;
-     Setpoint = b;
+     Setpoint += 1;
    }
    else if( input > 1550 &&  input < 1650)
    {
-     b = b + 0.5;
-     Setpoint = b;
+     Setpoint += 0.5;
    }
    else if( input < 1450 && input > 1350)
    {
-     b = b - 0.5;
-      Setpoint = b;
+     Setpoint -= 0.5;
    }
    else if( input < 1350 && input > 1250)
    {
-     b = b - 1;
-     Setpoint = b;
+     Setpoint -= 1;
    }
    else if( input < 1250)
    {
-     b = b - 1.5;
-     Setpoint = b;
+     Setpoint -= 1.5;
    }
    else if( input > 1450 && input < 1550)
    {
-     Setpoint = b;
+     Setpoint += 0;
    }
    return(Setpoint);
 }
@@ -95,8 +88,8 @@ void Motors::FlightControl(double v,double x,double y,double z)
   MotorMix(Motor2,Run2,1300,2000);
   MotorMix(Motor3,Run3,1300,2000);
   MotorMix(Motor4,Run4,1300,2000);
-  MotorMix(Motor5,Run5,1100,2000);
-  MotorMix(Motor6,Run6,1100,2000);
+  MotorMix(Motor5,Run5,1300,2000);
+  MotorMix(Motor6,Run6,1300,2000);
 }
 
 void Motors::StartUp()

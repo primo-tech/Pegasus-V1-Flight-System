@@ -42,6 +42,8 @@ double ThrottleSetPoint;
 double AltitudeSetPoint;
 double PitchSetPoint;
 double RollSetPoint;
+
+double Throttle = 1000;
 //--------------------------------------------------------------------------------------------------------------------
 /*
  *                                         CLASS OBJECT INSTANTIATIONS
@@ -51,7 +53,7 @@ Motors motor;                   // Instantiate motor control class
 Initialise inital;              // Instantiate initialisation class
 Sensors readIn;                  // Instantiate Sensor class
 
-PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,2,0.05,0, DIRECT);  //Altitude PID Controller
+PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  //Altitude PID Controller
 PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);  //Pitch PID Controller
 PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);   //Roll PID Controller
 //--------------------------------------------------------------------------------------------------------------
@@ -65,9 +67,9 @@ void setup()
   Serial.println("Initialize BME280");
   Serial.println("Initialize MPU6050");
   
-  PIDAlt.SetOutputLimits(1000, 1800);
-  PIDPitch.SetOutputLimits(-200, 200);
-  PIDRoll.SetOutputLimits(-200, 200);
+  PIDAlt.SetOutputLimits(-200,200);
+  PIDPitch.SetOutputLimits(-200,200);
+  PIDRoll.SetOutputLimits(-200,200);
 
   PIDAlt.SetMode(AUTOMATIC);
   PIDPitch.SetMode(AUTOMATIC);
@@ -88,7 +90,6 @@ void loop()
   breakout = 0;
   read_rc();         // read receiver values 
   digitalWrite(4,1);   
-  
   if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
   {
     digitalWrite(4,0);
@@ -138,19 +139,19 @@ void MainLoop()
   
     read_rc();                         // begin decoding PPM values
     
-    Ainput = readIn.Altitude();        // read in current altitude value
+    Ainput = readIn.Altitude() - initialAlt;        // read in current altitude value
     
-    xA = (double *)readIn.Axis_xyz();
-    yA = (double *)readIn.Axis_xyz()+1;          // read in roll and pitch IMU values
+    xA = (double *)readIn.IMU();
+    yA = (double *)readIn.IMU()+1;          // read in roll and pitch IMU values
     
     Rinput = *yA;
     Pinput = *xA -1.5;                           // set the roll and pitch value to PID inputs
     
-    ThrottleSetPoint =  map(ch[1],1040,2020,1000,1800);            // read in throttle setpoint
+    ThrottleSetPoint =  map(ch[1],1040,1950,1000,1800);            // read in throttle setpoint
     
     if(ThrottleSetPoint > 1050)
     {
-        AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput,initialAlt); // calcute the altitude setpoint from throttle commands
+        AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
         PitchSetPoint = map(ch[4],1000,1900,10,-10);
         RollSetPoint = map(ch[3],1000,1900,10,-10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 
@@ -177,11 +178,25 @@ void MainLoop()
     PIDRoll.Compute();
     
     MY = map(ch[2],1070,1930,-200,200);        // non feedback rate control for yaw
- 
-    motor.FlightControl(MA,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
+    
+    Throttle += MA;
+    if (Throttle < 1200)
+    {
+      Throttle = 1000;
+    }
+    else if (Throttle > 2000)
+    {
+      Throttle = 2000;
+    }
+
+    Serial.print(MP);
+    Serial.print("\t");
+    Serial.println(MR);
+    
+    motor.FlightControl(Throttle,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames);    //Run Loop at 100Hz
+    delay((timeStep*5000) - timeBetFrames);    //Run Loop at 100Hz
   }
 }                    
 /*

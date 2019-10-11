@@ -93,8 +93,8 @@ void loop()
   if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
   {
     digitalWrite(4,0);
-    inital.init_sensors();          // intialise IMU and Barometer
-    inital.init_motors();           // intialise motors and calibrate IMU
+    inital.initSensors();          // intialise IMU and Barometer
+    inital.initMotors();           // intialise motors and calibrate IMU
 
     while(breakout != 1)
     {

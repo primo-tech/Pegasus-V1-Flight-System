@@ -182,7 +182,7 @@ void MainLoop()
     Throttle += MA;
     if (Throttle < 1200)
     {
-      Throttle = 1000;
+      Throttle = 1200;
     }
     else if (Throttle > 2000)
     {

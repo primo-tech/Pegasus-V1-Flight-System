@@ -1,3 +1,5 @@
+#include "init.h"
+#include "motors.h"
 #include "sensorRead.h"
 
 #include <Wire.h>
@@ -43,9 +45,9 @@ double Sensors::Altitude()
   return(h);                    // return altitude value
 }
 
-float *Sensors::IMU()
+double *Sensors::IMU()
 {
-  static float Axis[3];        // created a static array to hold output
+  static double Axis[3];        // created a static array to hold output
   
   Vector norm = mpu.readNormalizeGyro();         // read in gyroscope values and accelerometer values
   Vector normAccel = mpu.readNormalizeAccel();   // as 1x3 vectors

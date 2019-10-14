@@ -36,7 +36,7 @@ double *xA;
 double *yA;
 
 double Ainput,Rinput,Pinput;
-double initialAlt;
+double initialAlt,initialRoll,initialPitch;
 
 double ThrottleSetPoint;
 double AltitudeSetPoint;
@@ -125,13 +125,24 @@ void MainLoop()
   AltitudeSetPoint = 0;
   PitchSetPoint = 0;
   RollSetPoint = 0;
-
+  
+  MA = 0;
+  MP = 0;
+  MR = 0;
+  MY = 0;
+  
   initialAlt = 0;
-  for(int counter = 0; counter < 10; counter++)
+  initialRoll = 0;
+  initialPitch = 0;
+  for(int counter = 0; counter < 100; counter++)
   {
     initialAlt += readIn.Altitude();
+    initialPitch += *readIn.IMU();
+    initialRoll += *readIn.IMU()+1;
   }
-  initialAlt = initialAlt/10;
+  initialAlt = initialAlt/100;
+  initialPitch = initialPitch/100;
+  initialRoll = initialRoll/100;
   
   while(breakout != 1)
   {
@@ -144,8 +155,8 @@ void MainLoop()
     xA = (double *)readIn.IMU();
     yA = (double *)readIn.IMU()+1;          // read in roll and pitch IMU values
     
+    Pinput = *xA - initialPitch;                           // set the roll and pitch value to PID inputs
     Rinput = *yA;
-    Pinput = *xA -1.5;                           // set the roll and pitch value to PID inputs
     
     ThrottleSetPoint =  map(ch[1],1040,1950,1000,1800);            // read in throttle setpoint
     
@@ -189,14 +200,14 @@ void MainLoop()
       Throttle = 2000;
     }
 
-    Serial.print(MP);
+    Serial.print(Pinput);
     Serial.print("\t");
-    Serial.println(MR);
+    Serial.println(Rinput);
     
     motor.FlightControl(Throttle,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*5000) - timeBetFrames);    //Run Loop at 100Hz
+    delay((timeStep*1500) - timeBetFrames);    //Run Loop at 100Hz
   }
 }                    
 /*

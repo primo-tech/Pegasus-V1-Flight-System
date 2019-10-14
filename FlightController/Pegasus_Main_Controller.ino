@@ -158,13 +158,13 @@ void MainLoop()
     Pinput = *xA - initialPitch;                           // set the roll and pitch value to PID inputs
     Rinput = *yA;
     
-    ThrottleSetPoint =  map(ch[1],1040,1950,1000,1800);            // read in throttle setpoint
+    ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);            // read in throttle setpoint
     
     if(ThrottleSetPoint > 1050)
     {
         AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
-        PitchSetPoint = map(ch[4],1000,1900,10,-10);
-        RollSetPoint = map(ch[3],1000,1900,10,-10);   // read in roll pitch and yaw setpoint values from receiver
+        PitchSetPoint = map(ch[4],1000,2000,10,-10);
+        RollSetPoint = map(ch[3],1000,2000,10,-10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
@@ -199,15 +199,17 @@ void MainLoop()
     {
       Throttle = 2000;
     }
-
-    Serial.print(Pinput);
+    
+    Serial.print(ThrottleSetPoint);
     Serial.print("\t");
-    Serial.println(Rinput);
+    Serial.print(MP);
+    Serial.print("\t");
+    Serial.println(MR);
     
     motor.FlightControl(Throttle,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1500) - timeBetFrames);    //Run Loop at 100Hz
+    delay((timeStep*4000) - timeBetFrames);    //Run Loop at 100Hz
   }
 }                    
 /*

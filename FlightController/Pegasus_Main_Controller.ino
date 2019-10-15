@@ -164,7 +164,7 @@ void MainLoop()
     {
         AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
         PitchSetPoint = map(ch[4],1000,2000,10,-10);
-        RollSetPoint = map(ch[3],1000,2000,10,-10);   // read in roll pitch and yaw setpoint values from receiver
+        RollSetPoint = map(ch[3],1000,2000,-10,10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 
         shutdowntime = 0;                             // keep a running count of time within loop
     }
@@ -195,16 +195,10 @@ void MainLoop()
     {
       Throttle = 1200;
     }
-    else if (Throttle > 2000)
+    else if (Throttle > 1800)
     {
-      Throttle = 2000;
+      Throttle = 1800;
     }
-    
-    Serial.print(ThrottleSetPoint);
-    Serial.print("\t");
-    Serial.print(MP);
-    Serial.print("\t");
-    Serial.println(MR);
     
     motor.FlightControl(Throttle,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
     

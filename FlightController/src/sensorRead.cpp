@@ -6,42 +6,34 @@
 #include <BME280I2C.h>
 #include <MPU6050.h>
 #include <HMC5883L.h>
+#include <FIR.h>
 
 extern MPU6050 mpu;        // extern allows other files to use these values
 extern BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
 extern HMC5883L compass;  
+extern FIR fir;
 
 Sensors::Sensors()
 {
-  /*compass = HMC5883L(); // Construct a new HMC5883 compass.
-  error = compass.SetScale(1.3); // Set the scale of the compass.
-   if(error != 0) // If there is an error, print it out.
-   {
-    Serial.println(compass.GetErrorText(error));
-   }
-  error = compass.SetMeasurementMode(Measurement_Continuous); // Set the measurement mode to Continuous
-  if(error != 0) // If there is an error, print it out.
-  {
-    Serial.println(compass.GetErrorText(error));   
-  } */      
+  fir.setCoefficients(coef);
+  fir.setGain(gain);
 }
 
 double Sensors::Altitude()
 {
   float temp(NAN), hum(NAN), pres(NAN);
-
   BME280::TempUnit tempUnit(BME280::TempUnit_Celsius);
   BME280::PresUnit presUnit(BME280::PresUnit_Pa); 
           
   bme.read(pres, temp, hum, tempUnit, presUnit);  //read the current tempurature and atmospheric pressure values
 
-  double T = temp + 273;
+  T = temp + 273;
    
   num = log(pres/Pb) * T * R;
   dnum = g * M * -1;                   // used predefined constants to calculated altitude.
   h = (num/dnum)+ hb;
-   
+  h = fir.process(h);    // here we call the fir routine with the input. The value 'fir' spits out is stored in the output variable.
   return(h);                    // return altitude value
 }
 
@@ -84,30 +76,4 @@ double *Sensors::IMU()
 
 float Sensors::MAG()
 {
- /* MagnetometerScaled scaled = compass.ReadScaledAxis(); // Retrived the scaled values from the compass (scaled to the configured scale).
-  
-  heading = atan2(scaled.YAxis, scaled.XAxis); // Calculate heading when the magnetometer is level, then correct for signs of axis.
-  
-  // Once you have your heading, add your 'Declination Angle', which is the 'Error' of the magnetic field in your location.
-  // Find yours here: http://www.magnetic-declination.com/
-  // If you cannot find your Declination, comment out these two lines, your compass will be slightly off.
-  heading += declinationAngle;
-  
-  if(heading < 0)   // Correct for when signs are reversed.
-  {
-    heading += 2*PI;
-  }
-  
-  if(heading > 2*PI) // Check for wrap due to addition of declination.
-  {
-    heading -= 2*PI;
-  }
-  
-  headingDegrees = heading * 180/M_PI;  // Convert radians to degrees
-  
-  // Normally we would delay the application by 66ms to allow the loop
-  // to run at 15Hz (default bandwidth for the HMC5883L). delay(66);
-  
-   return(headingDegrees);
-   */
 }

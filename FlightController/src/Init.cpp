@@ -13,7 +13,8 @@ MPU6050 mpu;
 BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
                   // Oversampling = pressure ×1, temperature ×1, humidity ×1, filter off,
 HMC5883L compass;
-             
+FIR fir;
+            
 void Initialise::initSensors()
 {
   Serial.println("");

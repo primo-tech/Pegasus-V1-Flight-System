@@ -12,6 +12,7 @@
 #include <BME280I2C.h>         // import wire library for i2c, servo library for motors
 #include <MPU6050.h>           // BME library for barometer, MPU library for IMU
 #include <HMC5883L.h>          // Reference the HMC5883L Compass Library
+#include <FIR.h>               // Finite impulse response filter library
 
 class Initialise              // create initialisation class
 {

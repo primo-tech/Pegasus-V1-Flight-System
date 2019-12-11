@@ -150,15 +150,15 @@ void MainLoop()
   
     read_rc();                         // begin decoding PPM values
     
-    Ainput = readIn.Altitude() - initialAlt;        // read in current altitude value
+    Ainput = readIn.Altitude() - initialAlt; // read in current altitude value
     
     xA = (double *)readIn.IMU();
     yA = (double *)readIn.IMU()+1;          // read in roll and pitch IMU values
     
-    Pinput = *xA - initialPitch;                           // set the roll and pitch value to PID inputs
+    Pinput = *xA - initialPitch;            // set the roll and pitch value to PID inputs
     Rinput = *yA;
     
-    ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);            // read in throttle setpoint
+    ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);  // read in throttle setpoint
     
     if(ThrottleSetPoint > 1050)
     {
@@ -199,11 +199,12 @@ void MainLoop()
     {
       Throttle = 1800;
     }
-    
-    motor.FlightControl(Throttle,MP,MR,MY);          // Send PID values to Motor Mixing algorithm
+
+    //Serial.println(MP);
+    motor.FlightControl(Throttle,MP,MR,MY);    // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*4000) - timeBetFrames);    //Run Loop at 100Hz
+    delay((timeStep*1000) - timeBetFrames);    //Run Loop at 100Hz
   }
 }                    
 /*

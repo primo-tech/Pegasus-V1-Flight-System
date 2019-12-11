@@ -16,11 +16,13 @@ class Motors                  // create motor control class
     
   public:
     double AltitudeControl(double input,double sensorVal);       // altitude hold algorithm
+    
+    void FullStop();                               // all motors set to lowest command value or off position
+    void StartUp();                                // Right an intial value to all motors 
+    
     void RunMotors(Servo* Motor,int Gain);   // transmits commands to motors
     void MotorMix(Servo x, int y, int lower, int upper);  // motor mixing algorithm for roll, pitch and yaw motion
-    void FlightControl(double v,double x,double y,double z);   // transmitts mixed values to motors
-    void FullStop();                               // all motors set to lowest command value or off position
-    void StartUp();                                // Right an intial value to all motors                                      
+    void FlightControl(double v,double x,double y,double z);   // transmitts mixed values to motors                                      
 };
 
 #endif

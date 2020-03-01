@@ -5,7 +5,7 @@
 //--------------------------------------------------------------------------------------------------------------------
 #include "init.h"
 #include "motors.h"
-#include "sensorRead.h"
+#include "sensors.h"
 #include <PID_v1.h>
 //---------------------------------------------------------------------------------------------------------------
 /*
@@ -51,7 +51,7 @@ double Throttle = 1000;
 //--------------------------------------------------------------------------------------------------------------------
 Motors motor;                   // Instantiate motor control class
 Initialise inital;              // Instantiate initialisation class
-Sensors readIn;                  // Instantiate Sensor class
+Sensors sensor;                  // Instantiate Sensor class
 
 PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  //Altitude PID Controller
 PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);  //Pitch PID Controller
@@ -136,9 +136,9 @@ void MainLoop()
   initialPitch = 0;
   for(int counter = 0; counter < 100; counter++)
   {
-    initialAlt += readIn.Altitude();
-    initialPitch += *readIn.IMU();
-    initialRoll += *readIn.IMU()+1;
+    initialAlt += sensor.ALT();
+    initialPitch += *sensor.IMU();
+    initialRoll += *sensor.IMU()+1;
   }
   initialAlt = initialAlt/100;
   initialPitch = initialPitch/100;
@@ -150,10 +150,10 @@ void MainLoop()
   
     read_rc();                         // begin decoding PPM values
     
-    Ainput = readIn.Altitude() - initialAlt; // read in current altitude value
+    Ainput = sensor.ALT() - initialAlt; // read in current altitude value
     
-    xA = (double *)readIn.IMU();
-    yA = (double *)readIn.IMU()+1;          // read in roll and pitch IMU values
+    xA = (double *)sensor.IMU();
+    yA = (double *)sensor.IMU()+1;          // read in roll and pitch IMU values
     
     Pinput = *xA - initialPitch;            // set the roll and pitch value to PID inputs
     Rinput = *yA;
@@ -162,7 +162,7 @@ void MainLoop()
     
     if(ThrottleSetPoint > 1050)
     {
-        AltitudeSetPoint = motor.AltitudeControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
+        AltitudeSetPoint = motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
         PitchSetPoint = map(ch[4],1000,2000,10,-10);
         RollSetPoint = map(ch[3],1000,2000,-10,10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 

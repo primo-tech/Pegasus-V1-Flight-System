@@ -1,6 +1,6 @@
 #include "init.h"
 #include "motors.h"
-#include "sensorRead.h"
+#include "sensors.h"
 
 #include <Servo.h>
 
@@ -25,7 +25,7 @@ void Motors::RunMotors(Servo* Motor,int Gain)
   Motor->writeMicroseconds(x);       // write gain to motors
 }
 
-double Motors::AltitudeControl(double input,double sensorVal)
+double Motors::ALTControl(double input,double sensorVal)
 {
    Setpoint = sensorVal; // start from zero;
    
@@ -77,14 +77,14 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
   RunMotors(&x,y);
 }
 
-void Motors::FlightControl(double v,double x,double y,double z)
+void Motors::FlightControl(double Th,double P,double R,double Y)
 {
-  double Run1 = v-x+y-z;     // Top Left
-  double Run2 = v-x+y+z;     // Bottom Left
-  double Run3 = v-x-y+z;     // Top Right
-  double Run4 = v-x-y-z;     // Bottom Right
-  double Run5 = v+x-(y*0.5)-z;     // Top Rear
-  double Run6 = v+x-(y*0.5)+z;     // Bottom Rear
+  double Run1 = Th-p+R+z;     // Top Left
+  double Run2 = Th-p+R-z;     // Bottom Left
+  double Run3 = Th-p-R-z;     // Top Right
+  double Run4 = Th-p-R+z;     // Bottom Right
+  double Run5 = Th+p+0+z;     // Top Rear
+  double Run6 = Th+p+0-z;     // Bottom Rear
   
   MotorMix(Motor1,Run1,1300,2000);
   MotorMix(Motor2,Run2,1300,2000);

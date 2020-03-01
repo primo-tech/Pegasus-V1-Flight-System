@@ -62,29 +62,29 @@ double Motors::ALTControl(double input,double sensorVal)
 
 void Motors::Saturate(Servo Motor, int Signal, int lower, int upper)
 {
-  if (y > upper)
+  if (Signal > upper)
   {
-    y = upper;
+    Signal = upper;
   }
-  else if(y < lower)     // set upper and lower motor limits as each motor is different
+  else if(Signal < lower)     // set upper and lower motor limits as each motor is different
   {                      // lower limit = just when the motor starts moving
-    y = lower;
+    Signal = lower;
   }
   else
   {
-    y = y;
+    Signal = Signal;
   }
-  RunMotors(&x,y);
+  RunMotors(&Motor,Signal);
 }
 
 void Motors::MotorMix(double Th,double P,double R,double Y)
 {
-  Signal[0] = Th-p+R+z;     // Top Left
-  Signal[1] = Th-p+R-z;     // Bottom Left
-  Signal[2] = Th-p-R-z;     // Top Right
-  Signal[3] = Th-p-R+z;     // Bottom Right
-  Signal[4] = Th+p+0+z;     // Top Rear
-  Signal[5] = Th+p+0-z;     // Bottom Rear
+  Signal[0] = Th-p+R+Y;     // Top Left
+  Signal[1] = Th-p+R-Y;     // Bottom Left
+  Signal[2] = Th-p-R-Y;     // Top Right
+  Signal[3] = Th-p-R+Y;     // Bottom Right
+  Signal[4] = Th+p+0+Y;     // Top Rear
+  Signal[5] = Th+p+0-Y;     // Bottom Rear
   
   Saturate(Motor1,Signal[0],1300,2000);
   Saturate(Motor2,Signal[1],1300,2000);

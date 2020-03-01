@@ -60,7 +60,7 @@ double Motors::ALTControl(double input,double sensorVal)
    return(Setpoint);
 }
 
-void Motors::MotorMix(Servo x, int y, int lower, int upper)
+void Motors::Saturate(Servo Motor, int Signal, int lower, int upper)
 {
   if (y > upper)
   {
@@ -77,21 +77,21 @@ void Motors::MotorMix(Servo x, int y, int lower, int upper)
   RunMotors(&x,y);
 }
 
-void Motors::FlightControl(double Th,double P,double R,double Y)
+void Motors::MotorMix(double Th,double P,double R,double Y)
 {
-  double Run1 = Th-p+R+z;     // Top Left
-  double Run2 = Th-p+R-z;     // Bottom Left
-  double Run3 = Th-p-R-z;     // Top Right
-  double Run4 = Th-p-R+z;     // Bottom Right
-  double Run5 = Th+p+0+z;     // Top Rear
-  double Run6 = Th+p+0-z;     // Bottom Rear
+  Signal[0] = Th-p+R+z;     // Top Left
+  Signal[1] = Th-p+R-z;     // Bottom Left
+  Signal[2] = Th-p-R-z;     // Top Right
+  Signal[3] = Th-p-R+z;     // Bottom Right
+  Signal[4] = Th+p+0+z;     // Top Rear
+  Signal[5] = Th+p+0-z;     // Bottom Rear
   
-  MotorMix(Motor1,Run1,1300,2000);
-  MotorMix(Motor2,Run2,1300,2000);
-  MotorMix(Motor3,Run3,1300,2000);
-  MotorMix(Motor4,Run4,1300,2000);
-  MotorMix(Motor5,Run5,1300,2000);
-  MotorMix(Motor6,Run6,1300,2000);
+  Saturate(Motor1,Signal[0],1300,2000);
+  Saturate(Motor2,Signal[1],1300,2000);
+  Saturate(Motor3,Signal[2],1300,2000);
+  Saturate(Motor4,Signal[3],1300,2000);
+  Saturate(Motor5,Signal[4],1300,2000);
+  Saturate(Motor6,Signal[5],1300,2000);
 }
 
 void Motors::StartUp()

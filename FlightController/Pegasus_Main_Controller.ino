@@ -201,7 +201,7 @@ void MainLoop()
     }
 
     //Serial.println(MP);
-    motor.FlightControl(Throttle,MP,MR,MY);    // Send PID values to Motor Mixing algorithm
+    motor.MotorMix(Throttle,MP,MR,MY);    // Send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
     delay((timeStep*1000) - timeBetFrames);    //Run Loop at 100Hz

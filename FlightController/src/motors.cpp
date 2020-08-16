@@ -31,31 +31,31 @@ double Motors::ALTControl(double input,double sensorVal)
    
    if( input > 1750)
    {
-     Setpoint += 1.5;
+     Setpoint = 0.3;
    }
    else if( input > 1650 &&  input < 1750)
    {
-     Setpoint += 1;
+     Setpoint = 0.2;
    }
    else if( input > 1550 &&  input < 1650)
    {
-     Setpoint += 0.5;
-   }
-   else if( input < 1450 && input > 1350)
-   {
-     Setpoint -= 0.5;
-   }
-   else if( input < 1350 && input > 1250)
-   {
-     Setpoint -= 1;
-   }
-   else if( input < 1250)
-   {
-     Setpoint -= 1.5;
+     Setpoint = 0.1;
    }
    else if( input > 1450 && input < 1550)
    {
-     Setpoint += 0;
+     Setpoint = 0;
+   }
+   else if( input < 1450 && input > 1350)
+   {
+     Setpoint = -0.1;
+   }
+   else if( input < 1350 && input > 1250)
+   {
+     Setpoint = -0.2;
+   }
+   else if( input < 1250 && input > 1050)
+   {
+     Setpoint = -0.3;
    }
    return(Setpoint);
 }

@@ -14,16 +14,17 @@
 #include <HMC5883L.h>          // Reference the HMC5883L Compass Library
 #include <FIR.h>               // Finite impulse response filter library
 
-class Initialise              // create initialisation class
+class Init          // create initialisation class
 {
-  public:
+  private:
     int M1 = 3;     // Top Left
     int M2 = 5;     // Bottom Left
     int M3 = 6;     // Top Right
     int M4 = 9;     // Bottom Right                 Motor Pin assignments
     int M5 = 10;    // Top Rear
     int M6 = 11;    // Bottom Rear
-
+  
+  public:
     void initSensors();          // initialise the sensors
     void initMotors();           // initialise the motors
 };

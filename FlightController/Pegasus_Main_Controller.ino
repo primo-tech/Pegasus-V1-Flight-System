@@ -25,7 +25,7 @@ bool breakout = 0;
  * RECEIVER VARIABLES
  */
 unsigned long int aa,bb,cc;
-int x[15],ch1[15],ch[7],ii; //specifing arrays and variables to store values
+int x[15],ch1[15],ch[7],ii; // specifing arrays and variables to store values
 /*
  *  CONTROL VARIABLES
  */
@@ -49,13 +49,13 @@ double Throttle = 1000;
  *                                         CLASS OBJECT INSTANTIATIONS
  */
 //--------------------------------------------------------------------------------------------------------------------
-Motors motor;                   // Instantiate motor control class
-Initialise inital;              // Instantiate initialisation class
-Sensors sensor;                  // Instantiate Sensor class
+Motors motor;           // instantiate motor control class
+Init init;              // instantiate initialisation class
+Sensors sensor;         // instantiate Sensor class
 
-PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  //Altitude PID Controller
-PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8.75,0.2,10, DIRECT);  //Pitch PID Controller
-PID PIDRoll(&Rinput, &MR, &RollSetPoint,8.75,0.2,10, DIRECT);   //Roll PID Controller
+PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  // altitude PID controller
+PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8,0.2,10, DIRECT);     // pitch PID controller
+PID PIDRoll(&Rinput, &MR, &RollSetPoint,8,0.2,10, DIRECT);      // roll PID controller
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -75,6 +75,10 @@ void setup()
   PIDPitch.SetMode(AUTOMATIC);
   PIDRoll.SetMode(AUTOMATIC);
   
+  PIDAlt.SetSampleTime(10);
+  PIDPitch.SetSampleTime(10);
+  PIDRoll.SetSampleTime(10);
+  
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(2), read_me, FALLING); // enabling interrupt at pin 2
@@ -93,8 +97,8 @@ void loop()
   if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
   {
     digitalWrite(4,0);
-    inital.initSensors();          // intialise IMU and Barometer
-    inital.initMotors();           // intialise motors and calibrate IMU
+    init.initSensors();          // intialise IMU and Barometer
+    init.initMotors();           // intialise motors and calibrate IMU
 
     while(breakout != 1)
     {
@@ -134,10 +138,11 @@ void MainLoop()
   initialAlt = 0;
   initialRoll = 0;
   initialPitch = 0;
+  
   for(int counter = 0; counter < 100; counter++)
   {
     initialAlt += sensor.ALT();
-    initialPitch += *sensor.IMU();
+    initialPitch += *sensor.IMU();    // calibrate sensor offsets 
     initialRoll += *sensor.IMU()+1;
   }
   initialAlt = initialAlt/100;
@@ -148,21 +153,21 @@ void MainLoop()
   {
     timer = millis();
   
-    read_rc();                         // begin decoding PPM values
+    read_rc();                          // begin decoding PPM values
     
     Ainput = sensor.ALT() - initialAlt; // read in current altitude value
     
     xA = (double *)sensor.IMU();
-    yA = (double *)sensor.IMU()+1;          // read in roll and pitch IMU values
+    yA = (double *)sensor.IMU()+1;      // read in roll and pitch IMU values
     
-    Pinput = *xA - initialPitch;            // set the roll and pitch value to PID inputs
-    Rinput = *yA;
+    Pinput = *xA - initialPitch;        // set the roll and pitch value to PID inputs
+    Rinput = *yA - initialRoll;
     
     ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);  // read in throttle setpoint
     
     if(ThrottleSetPoint > 1050)
     {
-        AltitudeSetPoint = motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
+        AltitudeSetPoint += motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
         PitchSetPoint = map(ch[4],1000,2000,10,-10);
         RollSetPoint = map(ch[3],1000,2000,-10,10);   // read in roll pitch and yaw setpoint values from receiver
                                                       // and map to between 0 and 10 degrees 
@@ -174,10 +179,10 @@ void MainLoop()
         PitchSetPoint = 0;
         RollSetPoint = 0;
        
-        shutdowntime += (millis()- timer)*10;           
+        shutdowntime += (millis() - timer)*10;           
         
-        if( shutdowntime > 4000)                   // if running count exceeds 4000 counts break out of main loop
-        {                                          // and reset all setpoints to zero
+        if( shutdowntime > 4000)              // if running count exceeds 4000 counts break out of main loop
+        {                                     // and reset all setpoints to zero
           digitalWrite(12,0);
           digitalWrite(13,0);
           breakout = 1;
@@ -185,15 +190,15 @@ void MainLoop()
     }
 
     PIDAlt.Compute();
-    PIDPitch.Compute();                        // calculate PID values
+    PIDPitch.Compute();                       // calculate PID values
     PIDRoll.Compute();
     
-    MY = map(ch[2],1070,1930,-200,200);        // non feedback rate control for yaw
+    MY = map(ch[2],1070,1930,-200,200);       // non feedback rate control for yaw
     
-    Throttle += MA;
+    Throttle = MA;
     if (Throttle < 1200)
     {
-      Throttle = 1200;
+      Throttle = 1200;                        // saturate throttle value to actuator limits
     }
     else if (Throttle > 1800)
     {
@@ -201,52 +206,52 @@ void MainLoop()
     }
 
     //Serial.println(MP);
-    motor.MotorMix(Throttle,MP,MR,MY);    // Send PID values to Motor Mixing algorithm
+    motor.MotorMix(Throttle,MP,MR,MY);        // send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames);    //Run Loop at 100Hz
+    delay((timeStep*1000) - timeBetFrames);   // run Loop at 100Hz
   }
 }                    
 /*
  *   READ PPM VALUES FROM PIN 2
+ *   this code reads value from RC reciever from PPM pin (Pin 2 or 3)
+ *   this code gives channel values from 0-1000 values    
+ *   : ABHILASH :
  */
-  //this code reads value from RC reciever from PPM pin (Pin 2 or 3)
-  //this code gives channel values from 0-1000 values 
-  //    -: ABHILASH :-    //
 void read_me() 
 {
   int j;
   
-  aa=micros();   //store time value a when pin value falling
-  cc=aa-bb;      //calculating time inbetween two peaks
-  bb=aa;         
-  x[ii]=cc;      //storing 15 value in array
-  ii=ii+1;       
+  aa = micros();   // store time value a when pin value falling
+  cc = aa - bb;    // calculating time inbetween two peaks
+  bb = aa;         
+  x[ii] = cc;      // storing 15 value in array
+  ii = ii + 1;       
 
-  if(ii==15)
+  if(ii == 15)
   {
-    for(j=0;j<15;j++)   //copy store all values from temporary array another array after 15 reading
+    for(j = 0;j < 15;j++)   // copy store all values from temporary array another array after 15 reading
     {
-      ch1[j]=x[j];
+      ch1[j] = x[j];
     }
-    ii=0;
+    ii = 0;
   }
 }
 
 void read_rc()
 {
-  int i,j,k=0;
+  int i,j,k = 0;
   
-  for(k=14;k>-1;k--)   //detecting separation space 10000us in that another array
+  for(k = 14;k > - 1;k--)   // detecting separation space 10000us in that another array
   {
-    if(ch1[k]>10000)
+    if(ch1[k] > 10000)
     {
-      j=k;
+      j = k;
     }
   } 
                     
-  for(i=1;i<=6;i++)
+  for(i = 1;i <= 6;i++)
   {
-    ch[i]=(ch1[i+j]);  //assign 6 channel values after separation space
+    ch[i] = (ch1[i+j]);    // assign 6 channel values after separation space
   }
 }

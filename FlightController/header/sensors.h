@@ -36,7 +36,7 @@ class Sensors
     /*
      * IMU VALUES
     */
-    int Pitch,Roll;
+    float apitch = 0,aroll = 0;
     float gpitch = 0, groll = 0, gyaw = 0;
     float angle_pitch_output, angle_roll_output;
     boolean set_gyro_angles; 
@@ -50,10 +50,10 @@ class Sensors
     
   public:
     Sensors();
-    float MAG();           // calculate the current heading  yaw(z)
     
     double ALT();     // calculated the current altitude above sea level
     double *IMU();         // calculate the current pose roll, pitch, yaw(x,y,z)
+    double MAG();           // calculate the current heading  yaw(z)
 
     double aveFilter(int sampleNumber, double value);  // Simple Averaging Filter
     double compFilter(int sampleNumber, double value); // Simple Complimentary Filter 

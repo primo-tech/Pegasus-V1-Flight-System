@@ -15,7 +15,7 @@ BME280I2C bme;    // Default : forced mode, standby time = 1000 ms
 HMC5883L compass;
 FIR fir;
             
-void Initialise::initSensors()
+void Init::initSensors()
 {
   Serial.println("");
   while(!bme.begin())
@@ -44,7 +44,7 @@ void Initialise::initSensors()
   
 }
 
-void Initialise::initMotors()
+void Init::initMotors()
 {
   Motors motor;
   mpu.calibrateGyro();

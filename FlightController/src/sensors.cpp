@@ -48,32 +48,32 @@ double *Sensors::IMU()
   groll = groll + norm.XAxis * timeStep;        // extract xyz rate values and calcutate position values
   gyaw = gyaw + norm.ZAxis * timeStep;
    
-  Pitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
-  Roll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
+  apitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
+  aroll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
    
   if(set_gyro_angles)
-  {                                                 //If the IMU is already started
-    gpitch = gpitch * 0.995 + Pitch * 0.005;     //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
-    groll = groll * 0.995 + Roll * 0.005;        //Correct the drift of the gyro roll angle with the accelerometer roll angle
+  {                                               //If the IMU is already started
+    gpitch = gpitch * 0.995 + apitch * 0.005;     //Correct the drift of the gyro pitch angle with the accelerometer pitch angle
+    groll = groll * 0.995 + aroll * 0.005;        //Correct the drift of the gyro roll angle with the accelerometer roll angle
   }
   else
-  {                                                                //At first start
-    gpitch = Pitch;                                     //Set the gyro pitch angle equal to the accelerometer pitch angle 
-    groll = Roll;                                       //Set the gyro roll angle equal to the accelerometer roll angle 
-    set_gyro_angles = true;                                            //Set the IMU started flag
+  {                                                //At first start
+    gpitch = apitch;                               //Set the gyro pitch angle equal to the accelerometer pitch angle 
+    groll = aroll;                                 //Set the gyro roll angle equal to the accelerometer roll angle 
+    set_gyro_angles = true;                        //Set the IMU started flag
   }
    
-  //To dampen the pitch and roll angles a complementary filter is used
+                                                                   //To dampen the pitch and roll angles a complementary filter is used
   angle_pitch_output = angle_pitch_output * 0.9 +  gpitch * 0.1;   //Take 90% of the output pitch value and add 10% of the raw pitch value
   angle_roll_output = angle_roll_output * 0.9 +  groll * 0.1;      //Take 90% of the output roll value and add 10% of the raw roll value
    
   Axis[0] = angle_pitch_output;
-  Axis[1] = angle_roll_output;                    // save pitch roll and yaw values to array
+  Axis[1] = angle_roll_output;         // save pitch roll and yaw values to array
   Axis[2] = gyaw;
    
   return(Axis);                        // return array
 }
 
-float Sensors::MAG()
+double Sensors::MAG()
 {
 }

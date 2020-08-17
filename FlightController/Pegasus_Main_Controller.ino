@@ -3,7 +3,7 @@
  *                                            CLASS HEADER FILES
  */
 //--------------------------------------------------------------------------------------------------------------------
-#include "init.h"
+#include "inits.h"
 #include "motors.h"
 #include "sensors.h"
 #include <PID_v1.h>
@@ -50,7 +50,7 @@ double Throttle = 1000;
  */
 //--------------------------------------------------------------------------------------------------------------------
 Motors motor;           // instantiate motor control class
-Init init;              // instantiate initialisation class
+Inits initi;            // instantiate initialisation class
 Sensors sensor;         // instantiate Sensor class
 
 PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  // altitude PID controller
@@ -94,23 +94,23 @@ void loop()
   breakout = 0;
   read_rc();         // read receiver values 
   digitalWrite(4,1);   
-  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
-  {
+  //if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
+  //{
     digitalWrite(4,0);
-    init.initSensors();          // intialise IMU and Barometer
-    init.initMotors();           // intialise motors and calibrate IMU
+    initi.initSensors();          // intialise IMU and Barometer
+    initi.initMotors();           // intialise motors and calibrate IMU
 
     while(breakout != 1)
     {
       motor.StartUp();
       read_rc();
       
-      if(ch[1] > 1200)
-      {
+      //if(ch[1] > 1200)
+      //{
         MainLoop();                 // run main flight controll loop        
-      }
+      //}
     }
-  }
+  //}
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -149,6 +149,11 @@ void MainLoop()
   initialPitch = initialPitch/100;
   initialRoll = initialRoll/100;
   
+  Serial.println(initialAlt);
+  Serial.println(initialPitch);
+  Serial.println(initialRoll);
+
+  delay(5000);
   while(breakout != 1)
   {
     timer = millis();
@@ -161,10 +166,10 @@ void MainLoop()
     yA = (double *)sensor.IMU()+1;      // read in roll and pitch IMU values
     
     Pinput = *xA - initialPitch;        // set the roll and pitch value to PID inputs
-    Rinput = *yA - initialRoll;
+    Rinput = *yA;
     
     ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);  // read in throttle setpoint
-    
+    Serial.println(Ainput);
     if(ThrottleSetPoint > 1050)
     {
         AltitudeSetPoint += motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
@@ -209,7 +214,7 @@ void MainLoop()
     motor.MotorMix(Throttle,MP,MR,MY);        // send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames);   // run Loop at 100Hz
+    delay((timeStep*2000) - timeBetFrames);   // run Loop at 100Hz
   }
 }                    
 /*

@@ -8,10 +8,10 @@
 #endif
 
 #include <Wire.h>
-#include <BME280I2C.h>         // Import wire library for i2c
+#include <BME280I2C.h>         // import wire library for i2c
 #include <MPU6050.h>           // BME library for barometer, MPU library for IMU
-#include <HMC5883L.h>          // Reference the HMC5883L Compass Library
-#include <FIR.h>               // Finite impulse response filter library
+#include <HMC5883L.h>          // reference the HMC5883L compass library
+#include <FIR.h>               // finite impulse response filter library
 
 #define FILTERTAPS 5
 
@@ -23,7 +23,7 @@ class Sensors
      * FILTER VALUES
      */
     float coef[FILTERTAPS] = { 0.021, 0.096, 0.146, 0.096, 0.021};
-    float gain = 0.38; // set to 1 and input unity to see what this needs to be
+    float gain = 1;        // set to 1 and input unity to see what this needs to be
     /*
     * BAROMETER VALUES
     */
@@ -52,11 +52,11 @@ class Sensors
     Sensors();
     
     double ALT();     // calculated the current altitude above sea level
-    double *IMU();         // calculate the current pose roll, pitch, yaw(x,y,z)
-    double MAG();           // calculate the current heading  yaw(z)
+    double *IMU();    // calculate the current pose roll, pitch, yaw(x,y,z)
+    double MAG();     // calculate the current heading  yaw(z)
 
-    double aveFilter(int sampleNumber, double value);  // Simple Averaging Filter
-    double compFilter(int sampleNumber, double value); // Simple Complimentary Filter 
+    double aveFilter(int sampleNumber, double value);  // simple averaging filter
+    double compFilter(int sampleNumber, double value); // simple complimentary filter 
 };
 
 #endif

@@ -1,4 +1,4 @@
-#include "init.h"
+#include "inits.h"
 #include "motors.h"
 #include "sensors.h"
 
@@ -12,17 +12,17 @@ void Motors::RunMotors(Servo* Motor,int Gain)
   
   if(Gain > 2000)
   {
-    x = 2000;                      // Actuator Limit Saturation 
+    x = 2000;                      // actuator limit saturation 
   }
   if(Gain < 1000)
   {
-    x = 1000;                      // Actuator Limit Saturation 
+    x = 1000;                      // actuator limit saturation 
   }
   else
   {
     x = Gain;              
   }
-  Motor->writeMicroseconds(x);       // write gain to motors
+  Motor->writeMicroseconds(x);     // write gain to motors
 }
 
 double Motors::ALTControl(double input,double sensorVal)
@@ -66,8 +66,8 @@ void Motors::Saturate(Servo Motor, int Signal, int lower, int upper)
   {
     Signal = upper;
   }
-  else if(Signal < lower)     // set upper and lower motor limits as each motor is different
-  {                      // lower limit = just when the motor starts moving
+  else if(Signal < lower) // set upper and lower motor limits as each motor is different
+  {                       // lower limit = just when the motor starts moving
     Signal = lower;
   }
   else
@@ -79,12 +79,12 @@ void Motors::Saturate(Servo Motor, int Signal, int lower, int upper)
 
 void Motors::MotorMix(double Th,double P,double R,double Y)
 {
-  Signal[0] = Th-p+R+Y;     // Top Left
-  Signal[1] = Th-p+R-Y;     // Bottom Left
-  Signal[2] = Th-p-R-Y;     // Top Right
-  Signal[3] = Th-p-R+Y;     // Bottom Right
-  Signal[4] = Th+p+0+Y;     // Top Rear
-  Signal[5] = Th+p+0-Y;     // Bottom Rear
+  Signal[0] = Th-P+R+Y;     // top left
+  Signal[1] = Th-P+R-Y;     // bottom left
+  Signal[2] = Th-P-R-Y;     // top right
+  Signal[3] = Th-P-R+Y;     // bottom right
+  Signal[4] = Th+P+0+Y;     // top rear
+  Signal[5] = Th+P+0-Y;     // bottom rear
   
   Saturate(Motor1,Signal[0],1300,2000);
   Saturate(Motor2,Signal[1],1300,2000);

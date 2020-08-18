@@ -94,8 +94,8 @@ void loop()
   breakout = 0;
   read_rc();         // read receiver values 
   digitalWrite(4,1);   
-  //if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
-  //{
+  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
+  {
     digitalWrite(4,0);
     initi.initSensors();          // intialise IMU and Barometer
     initi.initMotors();           // intialise motors and calibrate IMU
@@ -105,12 +105,12 @@ void loop()
       motor.StartUp();
       read_rc();
       
-      //if(ch[1] > 1200)
-      //{
+      if(ch[1] > 1200)
+      {
         MainLoop();                 // run main flight controll loop        
-      //}
+      }
     }
-  //}
+  }
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -169,7 +169,7 @@ void MainLoop()
     Rinput = *yA;
     
     ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);  // read in throttle setpoint
-    Serial.println(Ainput);
+   
     if(ThrottleSetPoint > 1050)
     {
         AltitudeSetPoint += motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
@@ -209,12 +209,11 @@ void MainLoop()
     {
       Throttle = 1800;
     }
-
-    //Serial.println(MP);
+    
     motor.MotorMix(Throttle,MP,MR,MY);        // send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*2000) - timeBetFrames);   // run Loop at 100Hz
+    delay((timeStep*1000) - timeBetFrames);   // run Loop at 100Hz
   }
 }                    
 /*

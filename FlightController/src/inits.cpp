@@ -41,7 +41,6 @@ void Inits::initSensors()
     Serial.println("Could not find a valid MPU6050 sensor, check wiring!");
     delay(500);
   }
-  
 }
 
 void Inits::initMotors()

@@ -32,16 +32,18 @@ int x[15],ch1[15],ch[7],ii; // specifing arrays and variables to store values
 double MA,MP,MR,MY;
 
 double alt;
-double *xA;
-double *yA;
+double *theta;
+double *phi;
+double *psidot;
 
-double Ainput,Rinput,Pinput;
+double Ainput,Rinput,Pinput,Yinput;
 double initialAlt,initialRoll,initialPitch;
 
 double ThrottleSetPoint;
 double AltitudeSetPoint;
 double PitchSetPoint;
 double RollSetPoint;
+double YawRateSetPoint;
 
 double Throttle = 1000;
 //--------------------------------------------------------------------------------------------------------------------
@@ -56,6 +58,7 @@ Sensors sensor;         // instantiate Sensor class
 PID PIDAlt(&Ainput,  &MA, &AltitudeSetPoint,10,0.2,0, DIRECT);  // altitude PID controller
 PID PIDPitch(&Pinput,&MP, &PitchSetPoint,8,0.2,10, DIRECT);     // pitch PID controller
 PID PIDRoll(&Rinput, &MR, &RollSetPoint,8,0.2,10, DIRECT);      // roll PID controller
+PID PIDYawRate(&Yinput, &MY, &YawRateSetPoint,10,0.5,10, DIRECT);      // yaw rate PID controller
 //--------------------------------------------------------------------------------------------------------------
 /*
  *                                   COMPONENT INITIALISATION LOOP 
@@ -70,14 +73,17 @@ void setup()
   PIDAlt.SetOutputLimits(-200,200);
   PIDPitch.SetOutputLimits(-200,200);
   PIDRoll.SetOutputLimits(-200,200);
-
+  PIDYawRate.SetOutputLimits(-200,200);
+  
   PIDAlt.SetMode(AUTOMATIC);
   PIDPitch.SetMode(AUTOMATIC);
   PIDRoll.SetMode(AUTOMATIC);
+  PIDYawRate.SetMode(AUTOMATIC);
   
   PIDAlt.SetSampleTime(10);
   PIDPitch.SetSampleTime(10);
   PIDRoll.SetSampleTime(10);
+  PIDYawRate.SetSampleTime(10);
   
   Wire.begin();                // join i2c bus with address #1
   pinMode(2, INPUT_PULLUP);
@@ -94,8 +100,8 @@ void loop()
   breakout = 0;
   read_rc();         // read receiver values 
   digitalWrite(4,1);   
-  if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
-  {
+  //if(ch[1]< 1100 && ch[2] > 1800 && ch[3] < 1300 && ch[4] < 1100)
+  //{
     digitalWrite(4,0);
     initi.initSensors();          // intialise IMU and Barometer
     initi.initMotors();           // intialise motors and calibrate IMU
@@ -105,12 +111,12 @@ void loop()
       motor.StartUp();
       read_rc();
       
-      if(ch[1] > 1200)
-      {
+      //if(ch[1] > 1200)
+      //{
         MainLoop();                 // run main flight controll loop        
-      }
+      //}
     }
-  }
+  //}
 }
 //-------------------------------------------------------------------------------------------------------------
 /*
@@ -129,6 +135,7 @@ void MainLoop()
   AltitudeSetPoint = 0;
   PitchSetPoint = 0;
   RollSetPoint = 0;
+  YawRateSetPoint = 0;
   
   MA = 0;
   MP = 0;
@@ -148,57 +155,59 @@ void MainLoop()
   initialAlt = initialAlt/100;
   initialPitch = initialPitch/100;
   initialRoll = initialRoll/100;
-  
-  Serial.println(initialAlt);
-  Serial.println(initialPitch);
-  Serial.println(initialRoll);
 
   delay(5000);
+  
   while(breakout != 1)
   {
     timer = millis();
-  
-    read_rc();                          // begin decoding PPM values
     
-    Ainput = sensor.ALT() - initialAlt; // read in current altitude value
+    read_rc();                            // begin decoding PPM values
     
-    xA = (double *)sensor.IMU();
-    yA = (double *)sensor.IMU()+1;      // read in roll and pitch IMU values
+    theta = (double *)sensor.IMU();
+    phi = (double *)sensor.IMU()+1;       // read in roll, pitch, yaw rate IMU values
+    psidot = (double *)sensor.IMU()+2;
+    Serial.println(*theta);
     
-    Pinput = *xA - initialPitch;        // set the roll and pitch value to PID inputs
-    Rinput = *yA;
+    Ainput = sensor.ALT() - initialAlt;   // read in current altitude value
+    Pinput = *theta - initialPitch;       // set the roll and pitch value to PID inputs
+    Rinput = *phi;
+    Yinput = *psidot;
     
     ThrottleSetPoint =  map(ch[1],1000,1930,1000,1800);  // read in throttle setpoint
-   
+    
     if(ThrottleSetPoint > 1050)
     {
         AltitudeSetPoint += motor.ALTControl(ThrottleSetPoint,Ainput); // calcute the altitude setpoint from throttle commands
-        PitchSetPoint = map(ch[4],1000,2000,10,-10);
-        RollSetPoint = map(ch[3],1000,2000,-10,10);   // read in roll pitch and yaw setpoint values from receiver
-                                                      // and map to between 0 and 10 degrees 
-        shutdowntime = 0;                             // keep a running count of time within loop
+        PitchSetPoint = map(ch[4],1000,2000,20,-20);
+        RollSetPoint = map(ch[3],1000,2000,-20,20);   
+        YawRateSetPoint = map(ch[2],1070,1930,-90,90);  // read in roll pitch and yaw setpoint values from receiver
+                                                        // and map angles to 0 - 20 degrees, rate to 0 - 90 degrees/s 
+        shutdowntime = 0;                               // keep a running count of time within loop
     }
     else
     {
         AltitudeSetPoint = 0;
         PitchSetPoint = 0;
         RollSetPoint = 0;
-       
+        YawRateSetPoint = 0;
+        
         shutdowntime += (millis() - timer)*10;           
         
         if( shutdowntime > 4000)              // if running count exceeds 4000 counts break out of main loop
         {                                     // and reset all setpoints to zero
           digitalWrite(12,0);
           digitalWrite(13,0);
-          breakout = 1;
+          breakout = 0;
         }
     }
-
+    
     PIDAlt.Compute();
     PIDPitch.Compute();                       // calculate PID values
     PIDRoll.Compute();
+    PIDYawRate.Compute();
     
-    MY = map(ch[2],1070,1930,-200,200);       // non feedback rate control for yaw
+    MY = map(ch[2],1070,1930,-200,200);       // non feedback rate control for yaw(A Shunt)
     
     Throttle = MA;
     if (Throttle < 1200)
@@ -213,7 +222,7 @@ void MainLoop()
     motor.MotorMix(Throttle,MP,MR,MY);        // send PID values to Motor Mixing algorithm
     
     timeBetFrames = millis() - timer;
-    delay((timeStep*1000) - timeBetFrames);   // run Loop at 100Hz
+    delay((timeStep*1200) - timeBetFrames);   // run Loop at 100Hz
   }
 }                    
 /*

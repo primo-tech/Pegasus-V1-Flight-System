@@ -40,12 +40,12 @@ double *Sensors::IMU()
 {
   static double Axis[3];        // created a static array to hold output
   
-  Vector norm = mpu.readNormalizeGyro();        // read in gyroscope values and accelerometer values
+  Vector normGyro = mpu.readNormalizeGyro();        // read in gyroscope values and accelerometer values
   Vector normAccel = mpu.readNormalizeAccel();  // as 1x3 vectors
    
-  gpitch = gpitch + norm.YAxis * timeStep;
-  groll = groll + norm.XAxis * timeStep;        // extract xyz rate values and calcutate position values
-  gyaw = gyaw + norm.ZAxis * timeStep;
+  gpitch = gpitch + normGyro.YAxis * timeStep;
+  groll = groll + normGyro.XAxis * timeStep;        // extract xyz rate values and calcutate position values
+  gyaw = normGyro.ZAxis;
    
   apitch = -(atan2(normAccel.XAxis, sqrt(normAccel.YAxis*normAccel.YAxis + normAccel.ZAxis*normAccel.ZAxis))*180.0)/M_PI;
   aroll = (atan2(normAccel.YAxis, normAccel.ZAxis)*180.0)/M_PI;
